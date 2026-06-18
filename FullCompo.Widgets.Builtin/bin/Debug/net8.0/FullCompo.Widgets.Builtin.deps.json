@@ -10,7 +10,8 @@
         "dependencies": {
           "Avalonia": "11.2.6",
           "FullCompo.Core": "1.0.0",
-          "FullCompo.Shared": "1.0.0"
+          "FullCompo.Shared": "1.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
         },
         "runtime": {
           "FullCompo.Widgets.Builtin.dll": {}

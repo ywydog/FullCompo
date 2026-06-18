@@ -15,6 +15,7 @@ public partial class App : Application
     private readonly IServiceProvider _services;
     private IThemeService _themeService = null!;
     private IPanelService _panelService = null!;
+    private TrayIcon? _trayIcon;
 
     public App(IServiceProvider services)
     {
@@ -37,9 +38,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new Window { IsVisible = false };
             _panelService.CreateOrUpdatePanels();
-
-            var hotKey = new KeyGesture(Key.E, KeyModifiers.Control | KeyModifiers.Shift);
-            RegisterGlobalHotKey(desktop, hotKey);
+            SetupTrayIcon();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -52,9 +51,57 @@ public partial class App : Application
         registry.RegisterRange(provider.GetWidgets());
     }
 
-    private void RegisterGlobalHotKey(IClassicDesktopStyleApplicationLifetime desktop, KeyGesture gesture)
+    private void SetupTrayIcon()
     {
-        // Global hotkey is platform-specific; for now we use a simple timer to check keyboard state
-        // or rely on tray menu. This is a placeholder for future implementation.
+        var menu = new NativeMenu();
+
+        var editModeItem = new NativeMenuItem("编辑模式");
+        editModeItem.Click += (_, _) => ToggleEditMode();
+
+        var settingsItem = new NativeMenuItem("设置");
+        settingsItem.Click += (_, _) => OpenSettings();
+
+        var exitItem = new NativeMenuItem("退出");
+        exitItem.Click += (_, _) => Shutdown();
+
+        menu.Add(editModeItem);
+        menu.Add(settingsItem);
+        menu.Add(new NativeMenuItemSeparator());
+        menu.Add(exitItem);
+
+        _trayIcon = new TrayIcon
+        {
+            ToolTipText = "全面组件",
+            Menu = menu,
+            IsVisible = true
+        };
+
+        var trayIcons = new TrayIcons { _trayIcon };
+        TrayIcon.SetIcons(this, trayIcons);
+    }
+
+    private void ToggleEditMode()
+    {
+        if (_panelService.IsEditMode)
+        {
+            _panelService.ExitEditMode();
+        }
+        else
+        {
+            _panelService.EnterEditMode();
+        }
+    }
+
+    private void OpenSettings()
+    {
+        // Placeholder for settings window
+    }
+
+    private void Shutdown()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
     }
 }

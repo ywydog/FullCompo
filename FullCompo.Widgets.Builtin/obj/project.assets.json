@@ -1625,7 +1625,8 @@
     "net8.0": [
       "Avalonia >= 11.2.6",
       "FullCompo.Core >= 1.0.0",
-      "FullCompo.Shared >= 1.0.0"
+      "FullCompo.Shared >= 1.0.0",
+      "Microsoft.Extensions.Logging.Abstractions >= 8.0.0"
     ]
   },
   "packageFolders": {
@@ -1680,6 +1681,10 @@
           "Avalonia": {
             "target": "Package",
             "version": "[11.2.6, )"
+          },
+          "Microsoft.Extensions.Logging.Abstractions": {
+            "target": "Package",
+            "version": "[8.0.0, )"
           }
         },
         "imports": [

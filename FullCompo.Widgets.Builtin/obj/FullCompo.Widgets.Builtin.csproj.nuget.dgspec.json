@@ -195,6 +195,10 @@
             "Avalonia": {
               "target": "Package",
               "version": "[11.2.6, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             }
           },
           "imports": [

@@ -10,7 +10,11 @@ public class BuiltinWidgetProvider : IWidgetProvider
         {
             new DateWidget(),
             new WeatherWidget(),
-            new ClockWidget()
+            new ClockWidget(),
+            new NoteWidget(),
+            new LauncherWidget(),
+            new SearchWidget(),
+            new CustomTextWidget()
         };
     }
 }
