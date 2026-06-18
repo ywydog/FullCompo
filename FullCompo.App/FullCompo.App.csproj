@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FullCompo.Core\FullCompo.Core.csproj" />
     <ProjectReference Include="..\FullCompo.Shared\FullCompo.Shared.csproj" />
     <ProjectReference Include="..\FullCompo.Widgets.Builtin\FullCompo.Widgets.Builtin.csproj" />

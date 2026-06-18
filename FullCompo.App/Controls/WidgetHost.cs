@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using FullCompo.App.Views;
+using FullCompo.Core.Abstractions;
 using FullCompo.Shared.Models;
 
 namespace FullCompo.App.Controls;
@@ -11,16 +12,18 @@ public class WidgetHost : Border
 {
     private readonly PanelWindow _panelWindow;
     private readonly WidgetInstanceConfig _config;
+    private readonly IWidget _widget;
     private Control _widgetView = null!;
     private bool _isDragging;
     private Point _dragStartPosition;
     private int _dragStartRow;
     private int _dragStartColumn;
 
-    public WidgetHost(PanelWindow panelWindow, WidgetInstanceConfig config)
+    public WidgetHost(PanelWindow panelWindow, WidgetInstanceConfig config, IWidget widget)
     {
         _panelWindow = panelWindow;
         _config = config;
+        _widget = widget;
 
         BorderThickness = new Thickness(0);
         CornerRadius = new CornerRadius(4);
@@ -65,16 +68,48 @@ public class WidgetHost : Border
     {
         var contextMenu = new ContextMenu();
 
+        var settingsItem = new MenuItem { Header = "组件设置" };
+        settingsItem.Click += (_, _) => OpenSettings();
+
+        var resizeItem = new MenuItem { Header = "切换尺寸" };
+        SetupResizeMenu(resizeItem);
+
         var deleteItem = new MenuItem { Header = "删除组件" };
         deleteItem.Click += (_, _) => _panelWindow.RemoveWidget(_config);
 
-        var resizeItem = new MenuItem { Header = "切换尺寸" };
-        // TODO: implement size switching
-
-        contextMenu.Items.Add(deleteItem);
+        contextMenu.Items.Add(settingsItem);
         contextMenu.Items.Add(resizeItem);
+        contextMenu.Items.Add(deleteItem);
 
         ContextMenu = contextMenu;
+    }
+
+    private void SetupResizeMenu(MenuItem parent)
+    {
+        foreach (var size in _widget.SupportedSizes)
+        {
+            var item = new MenuItem { Header = $"{size.Name} ({size.Columns}x{size.Rows})" };
+            var capturedSize = size;
+            item.Click += (_, _) => ResizeWidget(capturedSize);
+            parent.Items.Add(item);
+        }
+    }
+
+    private void ResizeWidget(WidgetSize size)
+    {
+        _config.ColumnSpan = size.Columns;
+        _config.RowSpan = size.Rows;
+        _panelWindow.ReloadLayout();
+        _panelWindow.SaveLayout();
+    }
+
+    private void OpenSettings()
+    {
+        var settingsView = _widget.CreateSettingsView(_config.Settings);
+        if (settingsView == null) return;
+
+        var dialog = new SettingsDialog(_widget.Name, settingsView);
+        dialog.Show(_panelWindow);
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Widgets.Builtin;
@@ -76,8 +78,24 @@ public partial class App : Application
             IsVisible = true
         };
 
+        LoadTrayIcon();
+
         var trayIcons = new TrayIcons { _trayIcon };
         TrayIcon.SetIcons(this, trayIcons);
+    }
+
+    private void LoadTrayIcon()
+    {
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+            var bitmap = new Bitmap(stream);
+            _trayIcon!.Icon = new WindowIcon(bitmap);
+        }
+        catch
+        {
+            // Logo not found, use default empty icon
+        }
     }
 
     private void ToggleEditMode()

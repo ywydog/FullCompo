@@ -44,4 +44,32 @@ public class CustomTextWidget : WidgetBase
             TextWrapping = TextWrapping.Wrap
         };
     }
+
+    public override Control? CreateSettingsView(WidgetSettings settings)
+    {
+        var stack = new StackPanel { Spacing = 8 };
+
+        var textBox = new TextBox
+        {
+            Text = settings.GetValue("text", "自定义文本") ?? "自定义文本",
+            Watermark = "文本内容"
+        };
+        textBox.TextChanged += (_, _) => settings.SetValue("text", textBox.Text ?? "");
+
+        var fontSizeBox = new NumericUpDown
+        {
+            Value = (decimal?)settings.GetValue("fontSize", 16.0),
+            Minimum = 8,
+            Maximum = 72,
+            Increment = 1
+        };
+        fontSizeBox.ValueChanged += (_, _) => settings.SetValue("fontSize", (double?)fontSizeBox.Value ?? 16.0);
+
+        stack.Children.Add(new TextBlock { Text = "文本" });
+        stack.Children.Add(textBox);
+        stack.Children.Add(new TextBlock { Text = "字号" });
+        stack.Children.Add(fontSizeBox);
+
+        return stack;
+    }
 }

@@ -94,7 +94,7 @@ public partial class PanelWindow : Window
                 var view = widget.CreateView(context);
                 view.Margin = new Thickness(_config.Spacing / 2);
 
-                var host = new WidgetHost(this, widgetConfig);
+                var host = new WidgetHost(this, widgetConfig, widget);
                 host.SetWidgetView(view);
 
                 Grid.SetColumn(host, widgetConfig.Column);

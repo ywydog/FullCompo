@@ -102,3 +102,6 @@
 /workspace/FullCompo.App/obj/Debug/net8.0/FullComp.32472D8C.Up2Date
 /workspace/FullCompo.App/obj/Debug/net8.0/FullCompo.App.genruntimeconfig.cache
 /workspace/FullCompo.App/obj/Debug/net8.0/ref/FullCompo.App.dll
+/workspace/FullCompo.App/obj/Debug/net8.0/FullCompo.App.dll
+/workspace/FullCompo.App/obj/Debug/net8.0/refint/FullCompo.App.dll
+/workspace/FullCompo.App/obj/Debug/net8.0/FullCompo.App.pdb
