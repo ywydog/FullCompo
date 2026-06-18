@@ -31,8 +31,18 @@ class Program
         var pluginsDirectory = Path.Combine(configService.GetConfigDirectory(), "plugins");
         pluginService.LoadPlugins(pluginsDirectory);
 
-        BuildAvaloniaApp(host.Services)
-            .StartWithClassicDesktopLifetime(args);
+        try
+        {
+            BuildAvaloniaApp(host.Services)
+                .StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            var logger = host.Services.GetService<ILogger<Program>>();
+            logger?.LogCritical(ex, "Application crashed");
+            File.WriteAllText(Path.Combine(Path.GetTempPath(), "FullCompo_Crash.log"), ex.ToString());
+            throw;
+        }
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args)

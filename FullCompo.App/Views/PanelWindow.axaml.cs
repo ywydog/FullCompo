@@ -36,6 +36,11 @@ public partial class PanelWindow : Window
 
         InitializeComponent();
         SetupContextMenu();
+    }
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
         ReloadLayout();
         UpdatePosition();
     }
@@ -116,8 +121,8 @@ public partial class PanelWindow : Window
 
     public void UpdatePosition()
     {
-        var screens = Screens.ScreenFromWindow(this);
-        var bounds = screens?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        var bounds = screen?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
 
         var totalWidth = _config.Columns * _config.CellWidth + (_config.Columns - 1) * _config.Spacing + _config.MarginLeft + _config.MarginRight + 16;
         var maxRow = _config.Widgets.Any() ? _config.Widgets.Max(w => w.Row + w.RowSpan) : 1;
