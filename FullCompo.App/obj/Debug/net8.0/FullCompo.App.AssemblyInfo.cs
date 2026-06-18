@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FullCompo.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+030f4dfd1d029078286a0684171cc2df64d6bd73")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+394c3601568e8785b83e205a195fc82ebc6a8bb1")]
 [assembly: System.Reflection.AssemblyProductAttribute("FullCompo.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FullCompo.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
