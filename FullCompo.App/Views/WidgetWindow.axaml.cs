@@ -25,7 +25,6 @@ public partial class WidgetWindow : Window
     private bool _isDragging;
     private Point _dragStart;
     private PixelPoint _positionStart;
-    private bool _isSnapping;
 
     public WidgetInstanceConfig Config => _config;
     public bool IsEditMode { get; private set; }
@@ -164,11 +163,6 @@ public partial class WidgetWindow : Window
         {
             newX = (int)snappedX;
             newY = (int)snappedY;
-            _isSnapping = true;
-        }
-        else
-        {
-            _isSnapping = false;
         }
 
         Position = new PixelPoint((int)newX, (int)newY);

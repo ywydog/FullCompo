@@ -29,9 +29,6 @@ public partial class DesktopSurfaceWindow : Window
 
     private bool _isEditMode;
     private WidgetContainer? _selectedContainer;
-    private bool _isDragging;
-    private Point _dragStart;
-    private Point _containerStart;
 
     private const double GridSize = 80.0;
     private const double SnapThreshold = 20.0;
@@ -423,6 +420,10 @@ public partial class DesktopSurfaceWindow : Window
         var canvas = this.FindControl<Canvas>("WidgetsCanvas");
         if (canvas == null) return;
 
+        var screen = Screens.Primary;
+        var maxX = screen?.Bounds.Width ?? 1920;
+        var maxY = screen?.Bounds.Height ?? 1080;
+
         var config = new WidgetInstanceConfig
         {
             WidgetId = "builtin.placeholder",
@@ -440,7 +441,7 @@ public partial class DesktopSurfaceWindow : Window
         }
         panel.Widgets.Add(config);
 
-        CreateWidgetContainer(config, canvas);
+        CreateWidgetContainer(config, canvas, maxX, maxY);
         var container = _widgetContainers.Last();
         SelectContainer(container);
     }

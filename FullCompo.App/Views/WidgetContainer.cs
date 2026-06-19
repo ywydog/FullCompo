@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Media;
 using FullCompo.Core.Abstractions;
@@ -8,6 +9,7 @@ using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
 using FullCompo.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FullCompo.App.Views;
 
@@ -91,7 +93,6 @@ public class WidgetContainer : Border
             Foreground = new SolidColorBrush(Colors.White),
             Background = new SolidColorBrush(Color.Parse("#80000000")),
             Padding = new Thickness(4, 2),
-            CornerRadius = new CornerRadius(4),
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
             Margin = new Thickness(4, 4, 0, 0),
