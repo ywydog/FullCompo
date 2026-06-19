@@ -40,15 +40,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new Window
-            {
-                Title = "FullCompo",
-                Width = 1,
-                Height = 1,
-                IsVisible = false,
-                ShowInTaskbar = false,
-                WindowState = WindowState.Minimized
-            };
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             // Apply theme now that Application.Current is available
             try
@@ -62,15 +54,6 @@ public partial class App : Application
                 logger?.LogError(ex, "Failed to apply theme");
             }
 
-            try
-            {
-                _panelService.CreateOrUpdatePanels();
-            }
-            catch (Exception ex)
-            {
-                var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to create panels");
-            }
             try
             {
                 SetupTrayIcon();
@@ -87,13 +70,26 @@ public partial class App : Application
                 if (configService.AppSettings.IsFirstRun)
                 {
                     var welcomeWindow = new WelcomeWindow(_services);
+                    welcomeWindow.Closed += (_, _) =>
+                    {
+                        try { _panelService.CreateOrUpdatePanels(); }
+                        catch (Exception ex2)
+                        {
+                            var logger = _services.GetService<ILogger<App>>();
+                            logger?.LogError(ex2, "Failed to create panels after welcome");
+                        }
+                    };
                     welcomeWindow.Show();
+                }
+                else
+                {
+                    _panelService.CreateOrUpdatePanels();
                 }
             }
             catch (Exception ex)
             {
                 var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to show welcome window");
+                logger?.LogError(ex, "Failed to create panels");
             }
         }
 

@@ -5,8 +5,6 @@
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
         Topmost="True"
         ShowInTaskbar="False"
         CanResize="False"
