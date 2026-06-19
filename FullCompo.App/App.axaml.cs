@@ -41,6 +41,19 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new Window { IsVisible = false };
+
+            // Apply theme now that Application.Current is available
+            try
+            {
+                var configService = _services.GetRequiredService<IConfigService>();
+                _themeService.ApplyTheme(configService.AppSettings.ThemeId);
+            }
+            catch (Exception ex)
+            {
+                var logger = _services.GetService<ILogger<App>>();
+                logger?.LogError(ex, "Failed to apply theme");
+            }
+
             try
             {
                 _panelService.CreateOrUpdatePanels();

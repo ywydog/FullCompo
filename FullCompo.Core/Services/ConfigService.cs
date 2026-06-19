@@ -19,13 +19,27 @@ public class ConfigService : IConfigService
         var settingsPath = Path.Combine(configDir, "settings.json");
         var panelsPath = Path.Combine(configDir, "panels.json");
 
-        AppSettings = File.Exists(settingsPath)
-            ? JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(settingsPath), JsonHelper.Options) ?? new AppSettings()
-            : new AppSettings();
+        try
+        {
+            AppSettings = File.Exists(settingsPath)
+                ? JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(settingsPath), JsonHelper.Options) ?? new AppSettings()
+                : new AppSettings();
+        }
+        catch
+        {
+            AppSettings = new AppSettings();
+        }
 
-        Panels = File.Exists(panelsPath)
-            ? JsonSerializer.Deserialize<List<PanelConfig>>(File.ReadAllText(panelsPath), JsonHelper.Options) ?? new List<PanelConfig>()
-            : new List<PanelConfig>();
+        try
+        {
+            Panels = File.Exists(panelsPath)
+                ? JsonSerializer.Deserialize<List<PanelConfig>>(File.ReadAllText(panelsPath), JsonHelper.Options) ?? new List<PanelConfig>()
+                : new List<PanelConfig>();
+        }
+        catch
+        {
+            Panels = new List<PanelConfig>();
+        }
 
         if (Panels.Count == 0)
         {
