@@ -13,10 +13,13 @@
         <Border x:Name="PanelBorder"
                 Background="{DynamicResource ThemeBackgroundColor}"
                 BorderBrush="{DynamicResource ThemeBorderColor}"
-                BorderThickness="{DynamicResource ThemeBorderThickness}"
-                CornerRadius="{DynamicResource ThemeCornerRadius}"
-                Padding="8">
-            <Grid x:Name="WidgetGrid" />
+                BorderThickness="1"
+                CornerRadius="20"
+                Padding="12,8"
+                BoxShadow="0 4 12 2 #40000000">
+            <StackPanel x:Name="WidgetStack"
+                        Orientation="Horizontal"
+                        Spacing="8" />
         </Border>
     </Grid>
 </Window>

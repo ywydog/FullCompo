@@ -10,5 +10,7 @@ public enum PanelDockMode
     TopLeftCorner,
     TopRightCorner,
     BottomLeftCorner,
-    BottomRightCorner
+    BottomRightCorner,
+    TopCenter,
+    BottomCenter
 }

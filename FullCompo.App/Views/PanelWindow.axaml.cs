@@ -36,6 +36,7 @@ public partial class PanelWindow : Window
 
         InitializeComponent();
         SetupContextMenu();
+        ApplyCornerRadius();
         ReloadLayout();
 
         Opened += (_, _) =>
@@ -49,28 +50,22 @@ public partial class PanelWindow : Window
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void SetupGrid()
+    private void ApplyCornerRadius()
     {
-        WidgetGrid.Children.Clear();
-        WidgetGrid.ColumnDefinitions.Clear();
-        WidgetGrid.RowDefinitions.Clear();
-
-        for (var i = 0; i < _config.Columns; i++)
+        var panelBorder = this.FindControl<Border>("PanelBorder");
+        if (panelBorder != null)
         {
-            WidgetGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-        }
-
-        var maxRow = _config.Widgets.Any() ? _config.Widgets.Max(w => w.Row + w.RowSpan) : 1;
-        for (var i = 0; i < maxRow; i++)
-        {
-            WidgetGrid.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+            panelBorder.CornerRadius = new CornerRadius(_config.CornerRadius);
         }
     }
 
     public void ReloadLayout()
     {
         _widgetHosts.Clear();
-        SetupGrid();
+        var widgetStack = this.FindControl<StackPanel>("WidgetStack");
+        if (widgetStack == null) return;
+
+        widgetStack.Children.Clear();
 
         foreach (var widgetConfig in _config.Widgets)
         {
@@ -96,17 +91,19 @@ public partial class PanelWindow : Window
             {
                 widget.OnActivated(context);
                 var view = widget.CreateView(context);
-                view.Margin = new Thickness(_config.Spacing / 2);
+
+                // Wrap view in a container with fixed height matching panel height
+                var container = new Border
+                {
+                    Child = view,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+                    Height = _config.PanelHeight - 16, // minus padding
+                };
 
                 var host = new WidgetHost(this, widgetConfig, widget);
-                host.SetWidgetView(view);
+                host.SetWidgetView(container);
 
-                Grid.SetColumn(host, widgetConfig.Column);
-                Grid.SetRow(host, widgetConfig.Row);
-                Grid.SetColumnSpan(host, widgetConfig.ColumnSpan);
-                Grid.SetRowSpan(host, widgetConfig.RowSpan);
-
-                WidgetGrid.Children.Add(host);
+                widgetStack.Children.Add(host);
                 _widgetHosts.Add(host);
             }
             catch (Exception ex)
@@ -125,15 +122,18 @@ public partial class PanelWindow : Window
             var screen = Screens?.ScreenFromWindow(this);
             var bounds = screen?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
 
-            var totalWidth = _config.Columns * _config.CellWidth + (_config.Columns - 1) * _config.Spacing + _config.MarginLeft + _config.MarginRight + 16;
-            var maxRow = _config.Widgets.Any() ? _config.Widgets.Max(w => w.Row + w.RowSpan) : 1;
-            var totalHeight = maxRow * _config.CellHeight + (maxRow - 1) * _config.Spacing + _config.MarginTop + _config.MarginBottom + 16;
-
-            Width = totalWidth;
-            Height = totalHeight;
+            // Let SizeToContent handle the actual size, just position the window
+            var totalWidth = Bounds.Width > 0 ? Bounds.Width : 400;
+            var totalHeight = Bounds.Height > 0 ? Bounds.Height : _config.PanelHeight;
 
             var position = _config.DockMode switch
             {
+                PanelDockMode.TopCenter => new PixelPoint(
+                    bounds.X + (bounds.Width - (int)totalWidth) / 2,
+                    bounds.Y + (int)_config.MarginTop),
+                PanelDockMode.BottomCenter => new PixelPoint(
+                    bounds.X + (bounds.Width - (int)totalWidth) / 2,
+                    bounds.Y + bounds.Height - (int)totalHeight - (int)_config.MarginBottom),
                 PanelDockMode.TopRightCorner => new PixelPoint(
                     bounds.X + bounds.Width - (int)totalWidth - (int)_config.MarginRight,
                     bounds.Y + (int)_config.MarginTop),
@@ -147,7 +147,7 @@ public partial class PanelWindow : Window
                     bounds.X + (int)_config.MarginLeft,
                     bounds.Y + bounds.Height - (int)totalHeight - (int)_config.MarginBottom),
                 _ => new PixelPoint(
-                    bounds.X + bounds.Width - (int)totalWidth - (int)_config.MarginRight,
+                    bounds.X + (bounds.Width - (int)totalWidth) / 2,
                     bounds.Y + (int)_config.MarginTop)
             };
 
@@ -162,8 +162,12 @@ public partial class PanelWindow : Window
     public void SetEditMode(bool isEditMode)
     {
         IsEditMode = isEditMode;
-        PanelBorder.IsHitTestVisible = isEditMode;
-        PanelBorder.Opacity = isEditMode ? 1.0 : _services.GetRequiredService<IThemeService>().CurrentTheme.Opacity;
+        var panelBorder = this.FindControl<Border>("PanelBorder");
+        if (panelBorder != null)
+        {
+            panelBorder.IsHitTestVisible = true; // Always allow interaction with panel
+            panelBorder.Opacity = isEditMode ? 1.0 : _services.GetRequiredService<IThemeService>().CurrentTheme.Opacity;
+        }
 
         ApplyClickThrough();
 
@@ -175,14 +179,14 @@ public partial class PanelWindow : Window
 
     private void ApplyClickThrough()
     {
-        var clickThrough = _services.GetRequiredService<IConfigService>().AppSettings.ClickThrough && !IsEditMode;
+        var clickThrough = _configService.AppSettings.ClickThrough && !IsEditMode;
 
-        // Avalonia doesn't have a direct ClickThrough API, but we can disable hit test on the window content
-        // and use platform-specific APIs for full click-through. This is a best-effort implementation.
         if (clickThrough)
         {
-            PanelBorder.IsHitTestVisible = false;
-            WidgetGrid.IsHitTestVisible = false;
+            var panelBorder = this.FindControl<Border>("PanelBorder");
+            if (panelBorder != null) panelBorder.IsHitTestVisible = false;
+            var widgetStack = this.FindControl<StackPanel>("WidgetStack");
+            if (widgetStack != null) widgetStack.IsHitTestVisible = false;
             foreach (var host in _widgetHosts)
             {
                 host.IsHitTestVisible = false;
@@ -190,11 +194,13 @@ public partial class PanelWindow : Window
         }
         else
         {
-            PanelBorder.IsHitTestVisible = true;
-            WidgetGrid.IsHitTestVisible = true;
+            var panelBorder = this.FindControl<Border>("PanelBorder");
+            if (panelBorder != null) panelBorder.IsHitTestVisible = true;
+            var widgetStack = this.FindControl<StackPanel>("WidgetStack");
+            if (widgetStack != null) widgetStack.IsHitTestVisible = true;
             foreach (var host in _widgetHosts)
             {
-                host.IsHitTestVisible = IsEditMode;
+                host.IsHitTestVisible = !IsEditMode; // In normal mode, widgets are interactive
             }
         }
     }
@@ -268,6 +274,9 @@ public partial class PanelWindow : Window
         _config.Widgets.Add(config);
         ReloadLayout();
         SaveLayout();
+
+        // Reposition after layout change
+        DispatcherTimer.RunOnce(() => UpdatePosition(), TimeSpan.FromMilliseconds(50));
     }
 
     private void ShowPanelSettings()
@@ -277,7 +286,8 @@ public partial class PanelWindow : Window
         {
             SaveLayout();
             ReloadLayout();
-            UpdatePosition();
+            ApplyCornerRadius();
+            DispatcherTimer.RunOnce(() => UpdatePosition(), TimeSpan.FromMilliseconds(50));
         };
         dialog.Show(this);
     }
@@ -287,5 +297,6 @@ public partial class PanelWindow : Window
         _config.Widgets.Remove(config);
         ReloadLayout();
         SaveLayout();
+        DispatcherTimer.RunOnce(() => UpdatePosition(), TimeSpan.FromMilliseconds(50));
     }
 }

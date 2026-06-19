@@ -17,7 +17,7 @@ public class NoteWidget : WidgetBase
     public override IEnumerable<WidgetSize> SupportedSizes => new[]
     {
         new WidgetSize { Id = "note-small", Name = "小", Type = WidgetSizeType.Small, Columns = 1, Rows = 1 },
-        new WidgetSize { Id = "note-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 2 }
+        new WidgetSize { Id = "note-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 1 }
     };
 
     public override WidgetSettings CreateDefaultSettings()
@@ -36,16 +36,14 @@ public class NoteWidget : WidgetBase
             Text = text,
             TextWrapping = TextWrapping.Wrap,
             HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Foreground = new SolidColorBrush(Colors.White),
+            VerticalAlignment = VerticalAlignment.Center,
             FontSize = 14
         };
 
         return new Border
         {
-            Background = new SolidColorBrush(Color.Parse("#33FFD700")),
             CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(8),
+            Padding = new Thickness(8, 4),
             Child = textBlock
         };
     }

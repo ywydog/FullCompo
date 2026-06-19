@@ -30,11 +30,10 @@ public class SearchWidget : WidgetBase
             VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Center,
-            Background = new SolidColorBrush(Color.Parse("#22FFFFFF")),
-            Foreground = new SolidColorBrush(Colors.White),
             CornerRadius = new CornerRadius(8),
             BorderThickness = new Thickness(0),
-            FontSize = 14
+            FontSize = 14,
+            MinWidth = 160
         };
 
         textBox.KeyDown += (_, e) =>

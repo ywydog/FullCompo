@@ -71,18 +71,17 @@ public class ConfigService : IConfigService
             new()
             {
                 Name = "默认面板",
-                DockMode = PanelDockMode.TopRightCorner,
-                MarginRight = 16,
-                MarginTop = 48,
-                Columns = 4,
-                CellWidth = 80,
-                CellHeight = 80,
+                DockMode = PanelDockMode.TopCenter,
+                MarginTop = 8,
+                PanelHeight = 80,
+                CornerRadius = 20,
                 Spacing = 8,
                 Widgets = new List<WidgetInstanceConfig>
                 {
                     new() { WidgetId = "builtin.date", Column = 0, Row = 0, ColumnSpan = 1, RowSpan = 1 },
-                    new() { WidgetId = "builtin.weather", Column = 1, Row = 0, ColumnSpan = 1, RowSpan = 1 },
-                    new() { WidgetId = "builtin.clock", Column = 2, Row = 0, ColumnSpan = 2, RowSpan = 2 }
+                    new() { WidgetId = "builtin.search", Column = 1, Row = 0, ColumnSpan = 2, RowSpan = 1 },
+                    new() { WidgetId = "builtin.clock", Column = 3, Row = 0, ColumnSpan = 2, RowSpan = 1 },
+                    new() { WidgetId = "builtin.weather", Column = 5, Row = 0, ColumnSpan = 1, RowSpan = 1 }
                 }
             }
         };

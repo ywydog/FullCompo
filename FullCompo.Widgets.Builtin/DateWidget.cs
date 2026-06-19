@@ -27,7 +27,6 @@ public class DateWidget : WidgetBase
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             FontSize = 14,
-            Foreground = new SolidColorBrush(Colors.White),
             Text = DateTime.Now.ToString("ddd MM/dd")
         };
 
@@ -40,9 +39,8 @@ public class DateWidget : WidgetBase
 
         return new Border
         {
-            Background = new SolidColorBrush(Color.Parse("#33FFFFFF")),
             CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(8),
+            Padding = new Thickness(8, 4),
             Child = textBlock
         };
     }

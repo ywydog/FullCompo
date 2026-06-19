@@ -3,7 +3,7 @@
         x:Class="FullCompo.App.Views.PanelSettingsDialog"
         Title="面板设置"
         Width="360"
-        Height="420"
+        Height="400"
         WindowStartupLocation="CenterOwner">
     <Grid RowDefinitions="Auto,*,Auto" Margin="16">
         <TextBlock Text="面板设置" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" />
@@ -13,19 +13,16 @@
                 <TextBlock Text="面板名称" />
                 <TextBox x:Name="NameBox" />
 
-                <TextBlock Text="停靠模式" />
+                <TextBlock Text="停靠位置" />
                 <ComboBox x:Name="DockModeBox" HorizontalAlignment="Stretch" />
 
-                <TextBlock Text="列数" />
-                <NumericUpDown x:Name="ColumnsBox" Minimum="1" Maximum="12" Increment="1" />
+                <TextBlock Text="面板高度" />
+                <NumericUpDown x:Name="PanelHeightBox" Minimum="40" Maximum="200" Increment="8" />
 
-                <TextBlock Text="单元格宽度" />
-                <NumericUpDown x:Name="CellWidthBox" Minimum="40" Maximum="200" Increment="8" />
+                <TextBlock Text="圆角半径" />
+                <NumericUpDown x:Name="CornerRadiusBox" Minimum="0" Maximum="40" Increment="2" />
 
-                <TextBlock Text="单元格高度" />
-                <NumericUpDown x:Name="CellHeightBox" Minimum="40" Maximum="200" Increment="8" />
-
-                <TextBlock Text="间距" />
+                <TextBlock Text="组件间距" />
                 <NumericUpDown x:Name="SpacingBox" Minimum="0" Maximum="32" Increment="2" />
 
                 <TextBlock Text="边距（左/上/右/下）" />

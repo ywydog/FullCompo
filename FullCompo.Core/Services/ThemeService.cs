@@ -43,37 +43,37 @@ public class ThemeService : IThemeService
             {
                 Id = "dark",
                 Name = "深色",
-                BackgroundColor = Color.Parse("#CC1E1E1E"),
+                BackgroundColor = Color.Parse("#E01E1E1E"),
                 ForegroundColor = Colors.White,
                 AccentColor = Color.Parse("#FF4A90E2"),
                 BorderColor = Color.Parse("#55FFFFFF"),
                 BorderThickness = 1,
-                CornerRadius = 12,
-                Opacity = 0.9
+                CornerRadius = 20,
+                Opacity = 0.95
             },
             new ThemeConfig
             {
                 Id = "light",
                 Name = "浅色",
-                BackgroundColor = Color.Parse("#EEF5F5F5"),
-                ForegroundColor = Colors.Black,
+                BackgroundColor = Color.Parse("#F0F5F5F5"),
+                ForegroundColor = Color.Parse("#FF1F1F1F"),
                 AccentColor = Color.Parse("#FF0078D4"),
-                BorderColor = Color.Parse("#55000000"),
+                BorderColor = Color.Parse("#33000000"),
                 BorderThickness = 1,
-                CornerRadius = 12,
-                Opacity = 0.95
+                CornerRadius = 20,
+                Opacity = 0.98
             },
             new ThemeConfig
             {
                 Id = "glass",
                 Name = "毛玻璃",
-                BackgroundColor = Color.Parse("#99232323"),
+                BackgroundColor = Color.Parse("#CC232323"),
                 ForegroundColor = Colors.White,
                 AccentColor = Color.Parse("#FF00D4AA"),
                 BorderColor = Color.Parse("#77FFFFFF"),
                 BorderThickness = 1,
-                CornerRadius = 16,
-                Opacity = 0.85
+                CornerRadius = 20,
+                Opacity = 0.9
             }
         };
     }

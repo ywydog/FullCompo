@@ -43,8 +43,6 @@ public class LauncherWidget : WidgetBase
             VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
-            Background = new SolidColorBrush(Color.Parse("#3355AAFF")),
-            Foreground = new SolidColorBrush(Colors.White),
             CornerRadius = new CornerRadius(8),
             FontSize = 14
         };
@@ -53,14 +51,7 @@ public class LauncherWidget : WidgetBase
         {
             try
             {
-                if (target.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                {
-                    Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
-                }
-                else
-                {
-                    Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
-                }
+                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
             }
             catch (Exception ex)
             {

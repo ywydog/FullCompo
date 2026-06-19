@@ -17,8 +17,7 @@ public class CustomTextWidget : WidgetBase
     public override IEnumerable<WidgetSize> SupportedSizes => new[]
     {
         new WidgetSize { Id = "text-small", Name = "小", Type = WidgetSizeType.Small, Columns = 1, Rows = 1 },
-        new WidgetSize { Id = "text-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 1 },
-        new WidgetSize { Id = "text-large", Name = "大", Type = WidgetSizeType.Large, Columns = 2, Rows = 2 }
+        new WidgetSize { Id = "text-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 1 }
     };
 
     public override WidgetSettings CreateDefaultSettings()
@@ -38,7 +37,6 @@ public class CustomTextWidget : WidgetBase
         {
             Text = text,
             FontSize = fontSize,
-            Foreground = new SolidColorBrush(Colors.White),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap

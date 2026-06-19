@@ -17,7 +17,7 @@ public class ClockWidget : WidgetBase
 
     public override IEnumerable<WidgetSize> SupportedSizes => new[]
     {
-        new WidgetSize { Id = "clock-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 2 }
+        new WidgetSize { Id = "clock-medium", Name = "中", Type = WidgetSizeType.Medium, Columns = 2, Rows = 1 }
     };
 
     public override Control CreateView(WidgetContext context)
@@ -26,9 +26,8 @@ public class ClockWidget : WidgetBase
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            FontSize = 24,
+            FontSize = 20,
             FontWeight = FontWeight.Bold,
-            Foreground = new SolidColorBrush(Colors.White),
             Text = DateTime.Now.ToString("HH:mm:ss")
         };
 
@@ -41,9 +40,8 @@ public class ClockWidget : WidgetBase
 
         return new Border
         {
-            Background = new SolidColorBrush(Color.Parse("#55FFFFFF")),
-            CornerRadius = new CornerRadius(12),
-            Padding = new Thickness(12),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(12, 4),
             Child = textBlock
         };
     }

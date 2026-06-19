@@ -26,9 +26,8 @@ public partial class PanelSettingsDialog : Window
     {
         var nameBox = this.FindControl<TextBox>("NameBox");
         var dockModeBox = this.FindControl<ComboBox>("DockModeBox");
-        var columnsBox = this.FindControl<NumericUpDown>("ColumnsBox");
-        var cellWidthBox = this.FindControl<NumericUpDown>("CellWidthBox");
-        var cellHeightBox = this.FindControl<NumericUpDown>("CellHeightBox");
+        var panelHeightBox = this.FindControl<NumericUpDown>("PanelHeightBox");
+        var cornerRadiusBox = this.FindControl<NumericUpDown>("CornerRadiusBox");
         var spacingBox = this.FindControl<NumericUpDown>("SpacingBox");
         var marginLeftBox = this.FindControl<NumericUpDown>("MarginLeftBox");
         var marginTopBox = this.FindControl<NumericUpDown>("MarginTopBox");
@@ -43,9 +42,8 @@ public partial class PanelSettingsDialog : Window
             dockModeBox.ItemsSource = Enum.GetValues<PanelDockMode>();
             dockModeBox.SelectedItem = _config.DockMode;
         }
-        if (columnsBox != null) columnsBox.Value = _config.Columns;
-        if (cellWidthBox != null) cellWidthBox.Value = (decimal?)_config.CellWidth;
-        if (cellHeightBox != null) cellHeightBox.Value = (decimal?)_config.CellHeight;
+        if (panelHeightBox != null) panelHeightBox.Value = (decimal?)_config.PanelHeight;
+        if (cornerRadiusBox != null) cornerRadiusBox.Value = (decimal?)_config.CornerRadius;
         if (spacingBox != null) spacingBox.Value = (decimal?)_config.Spacing;
         if (marginLeftBox != null) marginLeftBox.Value = (decimal?)_config.MarginLeft;
         if (marginTopBox != null) marginTopBox.Value = (decimal?)_config.MarginTop;
@@ -60,9 +58,8 @@ public partial class PanelSettingsDialog : Window
     {
         var nameBox = this.FindControl<TextBox>("NameBox");
         var dockModeBox = this.FindControl<ComboBox>("DockModeBox");
-        var columnsBox = this.FindControl<NumericUpDown>("ColumnsBox");
-        var cellWidthBox = this.FindControl<NumericUpDown>("CellWidthBox");
-        var cellHeightBox = this.FindControl<NumericUpDown>("CellHeightBox");
+        var panelHeightBox = this.FindControl<NumericUpDown>("PanelHeightBox");
+        var cornerRadiusBox = this.FindControl<NumericUpDown>("CornerRadiusBox");
         var spacingBox = this.FindControl<NumericUpDown>("SpacingBox");
         var marginLeftBox = this.FindControl<NumericUpDown>("MarginLeftBox");
         var marginTopBox = this.FindControl<NumericUpDown>("MarginTopBox");
@@ -71,13 +68,12 @@ public partial class PanelSettingsDialog : Window
 
         if (nameBox != null) _config.Name = nameBox.Text ?? "面板";
         if (dockModeBox?.SelectedItem is PanelDockMode dockMode) _config.DockMode = dockMode;
-        if (columnsBox != null) _config.Columns = (int)(columnsBox.Value ?? 4);
-        if (cellWidthBox != null) _config.CellWidth = (double)(cellWidthBox.Value ?? 80);
-        if (cellHeightBox != null) _config.CellHeight = (double)(cellHeightBox.Value ?? 80);
+        if (panelHeightBox != null) _config.PanelHeight = (double)(panelHeightBox.Value ?? 80);
+        if (cornerRadiusBox != null) _config.CornerRadius = (double)(cornerRadiusBox.Value ?? 20);
         if (spacingBox != null) _config.Spacing = (double)(spacingBox.Value ?? 8);
         if (marginLeftBox != null) _config.MarginLeft = (double)(marginLeftBox.Value ?? 0);
-        if (marginTopBox != null) _config.MarginTop = (double)(marginTopBox.Value ?? 0);
-        if (marginRightBox != null) _config.MarginRight = (double)(marginRightBox.Value ?? 16);
+        if (marginTopBox != null) _config.MarginTop = (double)(marginTopBox.Value ?? 8);
+        if (marginRightBox != null) _config.MarginRight = (double)(marginRightBox.Value ?? 0);
         if (marginBottomBox != null) _config.MarginBottom = (double)(marginBottomBox.Value ?? 0);
 
         Close();
