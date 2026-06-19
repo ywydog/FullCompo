@@ -1,4 +1,6 @@
+using System;
 using Avalonia.Controls;
+using FullCompo.App.Helpers;
 using FullCompo.App.Views;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
@@ -30,30 +32,51 @@ public class PanelService : IPanelService
 
     public void CreateOrUpdateWidgets()
     {
-        if (_desktopWindow == null)
+        try
         {
-            _desktopWindow = new DesktopSurfaceWindow(_services);
-            _desktopWindow.EditModeChanged += (s, e) => EditModeChanged?.Invoke(s, e);
-            _desktopWindow.Show();
+            if (_desktopWindow == null)
+            {
+                _desktopWindow = new DesktopSurfaceWindow(_services);
+                _desktopWindow.EditModeChanged += (s, e) => EditModeChanged?.Invoke(s, e);
+                _desktopWindow.Show();
+            }
+            else
+            {
+                _desktopWindow.LoadWidgets();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _desktopWindow.LoadWidgets();
+            AppLog.WriteException("PanelService.CreateOrUpdateWidgets", ex);
         }
     }
 
     public void EnterEditMode()
     {
-        if (_desktopWindow == null)
+        try
         {
-            CreateOrUpdateWidgets();
+            if (_desktopWindow == null)
+            {
+                CreateOrUpdateWidgets();
+            }
+            _desktopWindow?.EnterEditMode();
         }
-        _desktopWindow?.EnterEditMode();
+        catch (Exception ex)
+        {
+            AppLog.WriteException("PanelService.EnterEditMode", ex);
+        }
     }
 
     public void ExitEditMode()
     {
-        _desktopWindow?.ExitEditMode();
+        try
+        {
+            _desktopWindow?.ExitEditMode();
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("PanelService.ExitEditMode", ex);
+        }
     }
 
     public void RemoveWidget(WidgetInstanceConfig config)

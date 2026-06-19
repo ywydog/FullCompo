@@ -98,6 +98,6 @@ public class ConfigService : IConfigService
     public string GetConfigDirectory()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "FullCompo");
+        return Path.Combine(appData, "FullCompo", "data");
     }
 }

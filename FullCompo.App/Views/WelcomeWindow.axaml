@@ -5,6 +5,7 @@
         Width="720"
         Height="480"
         WindowStartupLocation="CenterScreen"
+        Topmost="True"
         CanResize="False">
     <Grid ColumnDefinitions="180,*">
         <!-- 左侧导航栏 -->

@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using FullCompo.App.Helpers;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
@@ -57,31 +58,54 @@ public partial class DesktopSurfaceWindow : Window
 
     private void SetupWindow()
     {
-        // Full screen covering all monitors
-        var screen = Screens.Primary;
-        if (screen != null)
+        try
         {
-            Width = screen.Bounds.Width;
-            Height = screen.Bounds.Height;
-            Position = new PixelPoint(screen.Bounds.X, screen.Bounds.Y);
+            // Full screen covering all monitors
+            var screen = Screens.Primary;
+            if (screen != null)
+            {
+                Width = screen.Bounds.Width;
+                Height = screen.Bounds.Height;
+                Position = new PixelPoint(screen.Bounds.X, screen.Bounds.Y);
+            }
+            else
+            {
+                Width = 1920;
+                Height = 1080;
+            }
         }
-        else
+        catch (Exception ex)
         {
+            AppLog.WriteException("DesktopSurfaceWindow.SetupWindow screen", ex);
             Width = 1920;
             Height = 1080;
         }
 
         Opened += (_, _) =>
         {
-            LoadWidgets();
-            if (_isEditMode) EnterEditMode();
+            try
+            {
+                LoadWidgets();
+                if (_isEditMode) EnterEditMode();
+            }
+            catch (Exception ex)
+            {
+                AppLog.WriteException("DesktopSurfaceWindow.Opened", ex);
+            }
         };
 
         // Click on empty canvas to deselect
-        var widgetsCanvas = this.FindControl<Canvas>("WidgetsCanvas");
-        if (widgetsCanvas != null)
+        try
         {
-            widgetsCanvas.PointerPressed += OnCanvasPointerPressed;
+            var widgetsCanvas = this.FindControl<Canvas>("WidgetsCanvas");
+            if (widgetsCanvas != null)
+            {
+                widgetsCanvas.PointerPressed += OnCanvasPointerPressed;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("DesktopSurfaceWindow.SetupWindow canvas", ex);
         }
     }
 
@@ -106,22 +130,29 @@ public partial class DesktopSurfaceWindow : Window
 
     public void LoadWidgets()
     {
-        var canvas = this.FindControl<Canvas>("WidgetsCanvas");
-        if (canvas == null) return;
-
-        canvas.Children.Clear();
-        _widgetContainers.Clear();
-
-        var screen = Screens.Primary;
-        var maxX = screen?.Bounds.Width ?? 1920;
-        var maxY = screen?.Bounds.Height ?? 1080;
-
-        foreach (var panel in _configService.Panels)
+        try
         {
-            foreach (var widgetConfig in panel.Widgets)
+            var canvas = this.FindControl<Canvas>("WidgetsCanvas");
+            if (canvas == null) return;
+
+            canvas.Children.Clear();
+            _widgetContainers.Clear();
+
+            var screen = Screens.Primary;
+            var maxX = screen?.Bounds.Width ?? 1920;
+            var maxY = screen?.Bounds.Height ?? 1080;
+
+            foreach (var panel in _configService.Panels)
             {
-                CreateWidgetContainer(widgetConfig, canvas, maxX, maxY);
+                foreach (var widgetConfig in panel.Widgets)
+                {
+                    CreateWidgetContainer(widgetConfig, canvas, maxX, maxY);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("DesktopSurfaceWindow.LoadWidgets", ex);
         }
     }
 

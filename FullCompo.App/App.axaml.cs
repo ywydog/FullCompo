@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -5,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using FullCompo.App.Helpers;
 using FullCompo.App.Views;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
@@ -67,19 +70,51 @@ public partial class App : Application
             try
             {
                 var configService = _services.GetRequiredService<IConfigService>();
+                AppLog.Write($"IsFirstRun={configService.AppSettings.IsFirstRun}");
                 if (configService.AppSettings.IsFirstRun)
                 {
-                    var welcomeWindow = new WelcomeWindow(_services);
-                    welcomeWindow.Closed += (_, _) =>
+                    WelcomeWindow? welcomeWindow = null;
+                    try
+                    {
+                        welcomeWindow = new WelcomeWindow(_services);
+                        welcomeWindow.Closed += (_, _) =>
+                        {
+                            try { _panelService.CreateOrUpdateWidgets(); }
+                            catch (Exception ex2)
+                            {
+                                AppLog.WriteException("Create widgets after welcome", ex2);
+                            }
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        AppLog.WriteException("Create welcome window", ex);
+                    }
+
+                    if (welcomeWindow != null)
+                    {
+                        try
+                        {
+                            welcomeWindow.Show();
+                        }
+                        catch (Exception ex)
+                        {
+                            AppLog.WriteException("Show welcome window", ex);
+                            try { _panelService.CreateOrUpdateWidgets(); }
+                            catch (Exception ex2)
+                            {
+                                AppLog.WriteException("Create widgets after welcome show failed", ex2);
+                            }
+                        }
+                    }
+                    else
                     {
                         try { _panelService.CreateOrUpdateWidgets(); }
                         catch (Exception ex2)
                         {
-                            var logger = _services.GetService<ILogger<App>>();
-                            logger?.LogError(ex2, "Failed to create widgets after welcome");
+                            AppLog.WriteException("Create widgets when welcome null", ex2);
                         }
-                    };
-                    welcomeWindow.Show();
+                    }
                 }
                 else
                 {
@@ -88,8 +123,7 @@ public partial class App : Application
             }
             catch (Exception ex)
             {
-                var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to create panels");
+                AppLog.WriteException("Startup panel/welcome", ex);
             }
         }
 
@@ -136,27 +170,51 @@ public partial class App : Application
 
     private void LoadTrayIcon()
     {
+        if (_trayIcon == null) return;
+
+        // 1. Try .ico stream directly (best for Windows tray icon)
         try
         {
             using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.ico"));
-            var bitmap = new Bitmap(stream);
-            _trayIcon!.Icon = new WindowIcon(bitmap);
+            _trayIcon.Icon = new WindowIcon(stream);
+            AppLog.Write("Tray icon loaded from logo.ico");
+            return;
         }
-        catch
+        catch (Exception ex)
         {
-            // Logo not found, use default empty icon
+            AppLog.WriteException("Load tray icon from logo.ico", ex);
+        }
+
+        // 2. Fallback to PNG bitmap
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+            var bitmap = new Bitmap(stream);
+            _trayIcon.Icon = new WindowIcon(bitmap);
+            AppLog.Write("Tray icon loaded from logo.png");
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("Load tray icon from logo.png", ex);
         }
     }
 
     private void ToggleEditMode()
     {
-        if (_panelService.IsEditMode)
+        try
         {
-            _panelService.ExitEditMode();
+            if (_panelService.IsEditMode)
+            {
+                _panelService.ExitEditMode();
+            }
+            else
+            {
+                _panelService.EnterEditMode();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _panelService.EnterEditMode();
+            AppLog.WriteException("Toggle edit mode", ex);
         }
     }
 

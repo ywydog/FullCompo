@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
+using FullCompo.App.Helpers;
 using FullCompo.App.Services;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
@@ -32,40 +33,41 @@ class Program
             return;
         }
 
+        RegisterGlobalExceptionHandlers();
+        AppLog.EnsureDirectory();
+        AppLog.Write("Starting FullCompo...");
+
         IHost? host = null;
-        var logPath = Path.Combine(Path.GetTempPath(), "FullCompo_Crash.log");
         try
         {
-            File.WriteAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting FullCompo...\n");
-
             try
             {
                 VelopackApp.Build().Run();
-                File.AppendAllText(logPath, "[OK] Velopack initialized\n");
+                AppLog.Write("Velopack initialized");
             }
             catch (Exception vpEx)
             {
-                File.AppendAllText(logPath, $"[WARN] Velopack init skipped: {vpEx.Message}\n");
+                AppLog.Write($"Velopack init skipped: {vpEx.Message}");
             }
 
-            File.AppendAllText(logPath, "[..] Building host...\n");
+            AppLog.Write("Building host...");
             host = CreateHostBuilder(args).Build();
-            File.AppendAllText(logPath, "[OK] Host built\n");
+            AppLog.Write("Host built");
 
             // Pre-load configuration before starting Avalonia
-            File.AppendAllText(logPath, "[..] Loading config...\n");
+            AppLog.Write("Loading config...");
             var configService = host.Services.GetRequiredService<IConfigService>();
             configService.Load();
-            File.AppendAllText(logPath, "[OK] Config loaded\n");
+            AppLog.Write("Config loaded");
 
-            File.AppendAllText(logPath, "[..] Loading themes...\n");
+            AppLog.Write("Loading themes...");
             var themeService = host.Services.GetRequiredService<IThemeService>();
             themeService.LoadThemes();
-            File.AppendAllText(logPath, "[OK] Themes loaded\n");
+            AppLog.Write("Themes loaded");
             // Note: ApplyTheme is called later in App.OnFrameworkInitializationCompleted
             // because Application.Current is null here.
 
-            File.AppendAllText(logPath, "[..] Starting Avalonia...\n");
+            AppLog.Write("Starting Avalonia...");
             BuildAvaloniaApp(host.Services)
                 .StartWithClassicDesktopLifetime(args);
         }
@@ -76,13 +78,46 @@ class Program
                 host?.Services.GetService<ILogger<Program>>()?.LogCritical(ex, "Application crashed");
             }
             catch { }
+            WriteCrashLog("Main", ex);
+            Environment.Exit(1);
+        }
+    }
+
+    private static void RegisterGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            WriteCrashLog("AppDomain.UnhandledException", e.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            WriteCrashLog("TaskScheduler.UnobservedTaskException", e.Exception);
+            e.SetObserved();
+        };
+    }
+
+    private static void WriteCrashLog(string context, Exception? ex)
+    {
+        if (ex == null) return;
+
+        try
+        {
+            AppLog.EnsureDirectory();
+            var fileName = $"crash-{DateTime.Now:yyyyMMdd-HHmmss}.log";
+            var path = Path.Combine(AppLog.LogsDirectory, fileName);
+            var content = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{context}] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
+            File.WriteAllText(path, content);
+        }
+        catch
+        {
+            // Last-resort fallback to temp
             try
             {
-                var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                File.WriteAllText(logPath, $"[{timestamp}] Application crashed:\n{ex}");
+                var fallback = Path.Combine(Path.GetTempPath(), "FullCompo_Crash.log");
+                File.WriteAllText(fallback, $"[{context}] {ex}");
             }
             catch { }
-            Environment.Exit(1);
         }
     }
 
