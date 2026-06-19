@@ -220,8 +220,15 @@ public partial class App : Application
 
     private void OpenSettings()
     {
-        var window = new AppSettingsWindow(_services);
-        window.Show();
+        try
+        {
+            var window = new AppSettingsWindow(_services);
+            window.Show();
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("Open settings", ex);
+        }
     }
 
     private void Shutdown()

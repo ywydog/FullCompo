@@ -48,6 +48,17 @@ public partial class DesktopSurfaceWindow : Window
     [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
     private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+    private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    private const uint SWP_FRAMECHANGED = 0x0020;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOZORDER = 0x0004;
+    private const uint SWP_NOOWNERZORDER = 0x0200;
+    private const uint SWP_SHOWWINDOW = 0x0040;
+
     public DesktopSurfaceWindow(IServiceProvider services)
     {
         _services = services;
@@ -221,6 +232,8 @@ public partial class DesktopSurfaceWindow : Window
             if (exStyle != newExStyle)
             {
                 SetWindowLong(handle, GWL_EXSTYLE, newExStyle);
+                SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0,
+                    SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
                 AppLog.Write($"DesktopSurfaceWindow click-through: {wantClickThrough}");
             }
         }
