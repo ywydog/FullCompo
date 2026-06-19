@@ -38,6 +38,16 @@ public partial class DesktopSurfaceWindow : Window
     public bool IsEditMode => _isEditMode;
     public event EventHandler<bool>? EditModeChanged;
 
+    // Windows mouse click-through support
+    private const int GWL_EXSTYLE = -20;
+    private const int WS_EX_TRANSPARENT = 0x00000020;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
     public DesktopSurfaceWindow(IServiceProvider services)
     {
         _services = services;
@@ -58,34 +68,13 @@ public partial class DesktopSurfaceWindow : Window
 
     private void SetupWindow()
     {
-        try
-        {
-            // Full screen covering all monitors
-            var screen = Screens.Primary;
-            if (screen != null)
-            {
-                Width = screen.Bounds.Width;
-                Height = screen.Bounds.Height;
-                Position = new PixelPoint(screen.Bounds.X, screen.Bounds.Y);
-            }
-            else
-            {
-                Width = 1920;
-                Height = 1080;
-            }
-        }
-        catch (Exception ex)
-        {
-            AppLog.WriteException("DesktopSurfaceWindow.SetupWindow screen", ex);
-            Width = 1920;
-            Height = 1080;
-        }
-
         Opened += (_, _) =>
         {
             try
             {
+                ApplyDockLayout();
                 LoadWidgets();
+                UpdateClickThrough();
                 if (_isEditMode) EnterEditMode();
             }
             catch (Exception ex)
@@ -106,6 +95,138 @@ public partial class DesktopSurfaceWindow : Window
         catch (Exception ex)
         {
             AppLog.WriteException("DesktopSurfaceWindow.SetupWindow canvas", ex);
+        }
+    }
+
+    private void ApplyDockLayout()
+    {
+        var screen = Screens.Primary;
+        var screenBounds = screen?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
+        var dock = _configService.AppSettings.DockPosition;
+
+        // Default top-right panel size (ClassIsland-like capsule)
+        const double panelHeight = 140;
+        const double panelWidthRatio = 0.38;
+        const double sidePanelWidth = 220;
+
+        AppLog.Write($"DesktopSurfaceWindow.ApplyDockLayout: dock={dock}, screen={screenBounds.Width}x{screenBounds.Height}");
+
+        switch (dock)
+        {
+            case "free":
+                WindowState = WindowState.FullScreen;
+                Width = screenBounds.Width;
+                Height = screenBounds.Height;
+                Position = new PixelPoint(screenBounds.X, screenBounds.Y);
+                break;
+
+            case "top":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * 0.8;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + (screenBounds.Width - Width) / 2),
+                    screenBounds.Y + 8);
+                break;
+
+            case "top-left":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * panelWidthRatio;
+                Height = panelHeight;
+                Position = new PixelPoint(screenBounds.X + 8, screenBounds.Y + 8);
+                break;
+
+            case "top-right":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * panelWidthRatio;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
+                    screenBounds.Y + 8);
+                break;
+
+            case "bottom":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * 0.8;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + (screenBounds.Width - Width) / 2),
+                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                break;
+
+            case "bottom-left":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * panelWidthRatio;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    screenBounds.X + 8,
+                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                break;
+
+            case "bottom-right":
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * panelWidthRatio;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
+                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                break;
+
+            case "left":
+                WindowState = WindowState.Normal;
+                Width = sidePanelWidth;
+                Height = screenBounds.Height * 0.8;
+                Position = new PixelPoint(
+                    screenBounds.X + 8,
+                    (int)(screenBounds.Y + (screenBounds.Height - Height) / 2));
+                break;
+
+            case "right":
+                WindowState = WindowState.Normal;
+                Width = sidePanelWidth;
+                Height = screenBounds.Height * 0.8;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
+                    (int)(screenBounds.Y + (screenBounds.Height - Height) / 2));
+                break;
+
+            default:
+                WindowState = WindowState.Normal;
+                Width = screenBounds.Width * panelWidthRatio;
+                Height = panelHeight;
+                Position = new PixelPoint(
+                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
+                    screenBounds.Y + 8);
+                break;
+        }
+
+        AppLog.Write($"DesktopSurfaceWindow layout: {Position}, {Width}x{Height}");
+    }
+
+    private void UpdateClickThrough()
+    {
+        try
+        {
+            if (!OperatingSystem.IsWindows()) return;
+
+            var handle = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+            if (handle == IntPtr.Zero) return;
+
+            var wantClickThrough = _configService.AppSettings.ClickThrough && !_isEditMode;
+            var exStyle = GetWindowLong(handle, GWL_EXSTYLE);
+            var newExStyle = wantClickThrough
+                ? exStyle | WS_EX_TRANSPARENT
+                : exStyle & ~WS_EX_TRANSPARENT;
+
+            if (exStyle != newExStyle)
+            {
+                SetWindowLong(handle, GWL_EXSTYLE, newExStyle);
+                AppLog.Write($"DesktopSurfaceWindow click-through: {wantClickThrough}");
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("DesktopSurfaceWindow.UpdateClickThrough", ex);
         }
     }
 
@@ -231,6 +352,7 @@ public partial class DesktopSurfaceWindow : Window
     public void EnterEditMode()
     {
         _isEditMode = true;
+        UpdateClickThrough();
         var overlay = this.FindControl<Canvas>("EditOverlay");
         var toolbar = this.FindControl<Border>("EditToolbar");
 
@@ -268,6 +390,7 @@ public partial class DesktopSurfaceWindow : Window
         }
 
         SaveLayout();
+        UpdateClickThrough();
         EditModeChanged?.Invoke(this, false);
     }
 

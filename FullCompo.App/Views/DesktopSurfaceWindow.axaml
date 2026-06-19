@@ -9,7 +9,7 @@
         ShowInTaskbar="False"
         CanResize="False"
         ShowActivated="False"
-        WindowState="FullScreen"
+        WindowState="Normal"
         FontFamily="{DynamicResource ThemeFontFamily}">
     <Grid x:Name="RootGrid">
         <!-- Edit mode overlay -->

@@ -28,6 +28,7 @@
                     <ListBoxItem x:Name="NavGeneral" Content="常规" Padding="8,6" />
                     <ListBoxItem x:Name="NavAppearance" Content="外观" Padding="8,6" />
                     <ListBoxItem x:Name="NavPanel" Content="面板" Padding="8,6" />
+                    <ListBoxItem x:Name="NavWeather" Content="天气" Padding="8,6" />
                     <ListBoxItem x:Name="NavAbout" Content="关于" Padding="8,6" />
                 </ListBox>
             </StackPanel>
@@ -84,8 +85,52 @@
                     <TextBlock Text="面板" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ThemeForegroundBrush}" />
 
                     <StackPanel Spacing="8">
+                        <TextBlock Text="停靠位置" Foreground="{DynamicResource ThemeForegroundBrush}" FontSize="14" />
+                        <TextBlock Text="选择组件面板在屏幕上的默认停靠位置" Foreground="{DynamicResource ThemeSecondaryForegroundBrush}" FontSize="12" />
+                        <ComboBox x:Name="DockPositionBox" Width="240" HorizontalAlignment="Left">
+                            <ComboBoxItem Content="自由定位" />
+                            <ComboBoxItem Content="屏幕顶部居中" />
+                            <ComboBoxItem Content="屏幕左上角" />
+                            <ComboBoxItem Content="屏幕右上角" />
+                            <ComboBoxItem Content="屏幕底部居中" />
+                            <ComboBoxItem Content="屏幕左下角" />
+                            <ComboBoxItem Content="屏幕右下角" />
+                            <ComboBoxItem Content="屏幕左侧" />
+                            <ComboBoxItem Content="屏幕右侧" />
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
                         <TextBlock Text="穿透点击（运行时鼠标可穿透面板）" Foreground="{DynamicResource ThemeForegroundBrush}" FontSize="14" />
                         <ToggleSwitch x:Name="ClickThroughToggle" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 天气 -->
+            <ScrollViewer x:Name="PageWeather" Grid.Row="0" Margin="24,20,24,0" IsVisible="False">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="天气" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ThemeForegroundBrush}" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="启用天气" Foreground="{DynamicResource ThemeForegroundBrush}" FontSize="14" />
+                        <ToggleSwitch x:Name="WeatherEnabledToggle" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="当前城市" Foreground="{DynamicResource ThemeForegroundBrush}" FontSize="14" />
+                        <TextBlock x:Name="WeatherCityText" Foreground="{DynamicResource ThemeSecondaryForegroundBrush}" FontSize="13" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="WeatherCitySearchText" Grid.Column="0" Watermark="搜索城市或省份…" />
+                            <Button x:Name="WeatherSearchButton" Grid.Column="1" Content="搜索" Margin="8,0,0,0" />
+                        </Grid>
+                        <ListBox x:Name="WeatherCityResults" MaxHeight="160" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="不使用 TLS 获取天气" Foreground="{DynamicResource ThemeForegroundBrush}" FontSize="14" />
+                        <TextBlock Text="不建议，但可能改善兼容性较差的网络环境。" Foreground="{DynamicResource ThemeSecondaryForegroundBrush}" FontSize="12" />
+                        <ToggleSwitch x:Name="WeatherNoTLSToggle" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -97,7 +142,7 @@
 
                     <Image Width="48"
                            Height="48"
-                           Source="avares://FullCompo.App/Assets/logo.png"
+                           Source="avares://FullCompo.App/Assets/logo.ico"
                            HorizontalAlignment="Left" />
 
                     <TextBlock Text="FullCompo" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource ThemeForegroundBrush}" />
