@@ -24,7 +24,7 @@ public class ClockWidget : WidgetBase
 
     public override Control CreateView(WidgetContext context)
     {
-        var isLarge = context.Size.Rows >= 2;
+        var isLarge = context.CurrentSize.Rows >= 2;
         var fontSize = isLarge ? 36 : 20;
 
         var textBlock = new TextBlock
