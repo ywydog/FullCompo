@@ -138,7 +138,7 @@ public partial class App : Application
     {
         try
         {
-            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.ico"));
             var bitmap = new Bitmap(stream);
             _trayIcon!.Icon = new WindowIcon(bitmap);
         }

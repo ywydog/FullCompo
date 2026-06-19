@@ -10,6 +10,7 @@
     <NoWarn>AVLN3001</NoWarn>
     <AssemblyName>FullCompo</AssemblyName>
     <RootNamespace>FullCompo.App</RootNamespace>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
