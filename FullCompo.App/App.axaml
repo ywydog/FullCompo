@@ -7,7 +7,10 @@
         <sty:FluentAvaloniaTheme />
 
         <!-- Global default font; overridden by ThemeFontFamily at runtime -->
-        <Style Selector="TextBlock, TextBox, Button, Label, ListBoxItem, ComboBoxItem">
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}" />
+        </Style>
+        <Style Selector="TemplatedControl">
             <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}" />
         </Style>
     </Application.Styles>
