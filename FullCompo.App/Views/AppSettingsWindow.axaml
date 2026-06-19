@@ -1,32 +1,142 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="FullCompo.App.Views.AppSettingsWindow"
-        Title="设置"
-        Width="360"
-        Height="300"
-        WindowStartupLocation="CenterScreen">
-    <Grid RowDefinitions="Auto,*,Auto" Margin="16">
-        <TextBlock Text="应用设置" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" />
+        Title="FullCompo 设置"
+        Width="640"
+        Height="440"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False">
+    <Grid ColumnDefinitions="160,*">
+        <!-- 左侧导航栏 -->
+        <Border Grid.Column="0"
+                Background="#FFFFFFFF"
+                Padding="16,20">
+            <StackPanel Spacing="4">
+                <TextBlock Text="设置"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="#FF1F1F1F"
+                           Margin="0,0,0,20" />
 
-        <ScrollViewer Grid.Row="1">
-            <StackPanel Spacing="12">
-                <TextBlock Text="主题" />
-                <ComboBox x:Name="ThemeBox" HorizontalAlignment="Stretch" />
-
-                <TextBlock Text="开机自启" />
-                <ToggleSwitch x:Name="StartupToggle" />
-
-                <TextBlock Text="显示托盘图标" />
-                <ToggleSwitch x:Name="TrayToggle" />
-
-                <TextBlock Text="穿透点击（运行时鼠标可穿透面板）" />
-                <ToggleSwitch x:Name="ClickThroughToggle" />
+                <ListBox x:Name="NavList"
+                         SelectionMode="Single"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="0">
+                    <ListBoxItem x:Name="NavGeneral" Content="常规" Padding="8,6" />
+                    <ListBoxItem x:Name="NavAppearance" Content="外观" Padding="8,6" />
+                    <ListBoxItem x:Name="NavPanel" Content="面板" Padding="8,6" />
+                    <ListBoxItem x:Name="NavAbout" Content="关于" Padding="8,6" />
+                </ListBox>
             </StackPanel>
-        </ScrollViewer>
+        </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-            <Button x:Name="SaveButton" Content="保存" />
-            <Button x:Name="CancelButton" Content="取消" />
-        </StackPanel>
+        <!-- 右侧内容区 -->
+        <Grid Grid.Column="1" RowDefinitions="*,Auto" Background="#FFF3F3F3">
+
+            <!-- 常规 -->
+            <ScrollViewer x:Name="PageGeneral" Grid.Row="0" Margin="24,20,24,0">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="常规" FontSize="20" FontWeight="Bold" Foreground="#FF1F1F1F" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="开机自启" Foreground="#FF1F1F1F" FontSize="14" />
+                        <ToggleSwitch x:Name="StartupToggle" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="显示托盘图标" Foreground="#FF1F1F1F" FontSize="14" />
+                        <ToggleSwitch x:Name="TrayToggle" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 外观 -->
+            <ScrollViewer x:Name="PageAppearance" Grid.Row="0" Margin="24,20,24,0" IsVisible="False">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="外观" FontSize="20" FontWeight="Bold" Foreground="#FF1F1F1F" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="主题" Foreground="#FF1F1F1F" FontSize="14" />
+                        <ComboBox x:Name="ThemeBox" Width="240" HorizontalAlignment="Left" />
+                    </StackPanel>
+
+                    <Border x:Name="ThemePreviewSettings"
+                            Width="240"
+                            Height="80"
+                            CornerRadius="12"
+                            BorderThickness="1"
+                            Margin="0,4,0,0">
+                        <TextBlock x:Name="PreviewTextBlockSettings"
+                                   Text="主题预览"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="14" />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 面板 -->
+            <ScrollViewer x:Name="PagePanel" Grid.Row="0" Margin="24,20,24,0" IsVisible="False">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="面板" FontSize="20" FontWeight="Bold" Foreground="#FF1F1F1F" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="穿透点击（运行时鼠标可穿透面板）" Foreground="#FF1F1F1F" FontSize="14" />
+                        <ToggleSwitch x:Name="ClickThroughToggle" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 关于 -->
+            <ScrollViewer x:Name="PageAbout" Grid.Row="0" Margin="24,20,24,0" IsVisible="False">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="关于" FontSize="20" FontWeight="Bold" Foreground="#FF1F1F1F" />
+
+                    <Border Width="48"
+                            Height="48"
+                            CornerRadius="10"
+                            Background="#FF0078D4"
+                            HorizontalAlignment="Left">
+                        <TextBlock Text="F"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <TextBlock Text="FullCompo" FontSize="16" FontWeight="SemiBold" Foreground="#FF1F1F1F" />
+                    <TextBlock Text="版本 1.0.0" Foreground="#FF5F5F5F" FontSize="13" />
+                    <TextBlock Text="在桌面上搭建你的个性化信息面板。"
+                               Foreground="#FF5F5F5F" FontSize="13" TextWrapping="Wrap" />
+                    <TextBlock Text="https://github.com/fengjian868/FullCompo"
+                               Foreground="#FF0078D4" FontSize="13" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 底部按钮 -->
+            <Border Grid.Row="1"
+                    Background="#FFFFFFFF"
+                    BorderBrush="#FFE5E5E5"
+                    BorderThickness="0,1,0,0"
+                    Padding="24,12"
+                    HorizontalAlignment="Stretch">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="12">
+                    <Button x:Name="CancelButton"
+                            Content="取消"
+                            Padding="16,6"
+                            Background="#FFE5E5E5"
+                            Foreground="#FF1F1F1F" />
+                    <Button x:Name="SaveButton"
+                            Content="保存"
+                            Padding="16,6"
+                            Background="#FF0078D4"
+                            Foreground="White" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

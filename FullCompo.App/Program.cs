@@ -1,4 +1,6 @@
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using FullCompo.App.Services;
@@ -15,9 +17,21 @@ namespace FullCompo.App;
 
 class Program
 {
+    private static Mutex? _singleInstanceMutex;
+    private const string MutexName = "FullCompo_SingleInstance";
+
     [STAThread]
     public static void Main(string[] args)
     {
+        // Single instance detection
+        _singleInstanceMutex = new Mutex(true, MutexName, out var createdNew);
+        if (!createdNew)
+        {
+            // Already running - notify user and exit
+            ShowAlreadyRunningMessage();
+            return;
+        }
+
         IHost? host = null;
         var logPath = Path.Combine(Path.GetTempPath(), "FullCompo_Crash.log");
         try
@@ -102,4 +116,15 @@ class Program
             .WithInterFont()
             .LogToTrace();
     }
+
+    private static void ShowAlreadyRunningMessage()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            MessageBox(IntPtr.Zero, "FullCompo 已在运行中。", "FullCompo", 0x40); // MB_ICONINFORMATION
+        }
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
 }
