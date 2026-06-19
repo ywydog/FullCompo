@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Ellipse = Avalonia.Controls.Shapes.Ellipse;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
