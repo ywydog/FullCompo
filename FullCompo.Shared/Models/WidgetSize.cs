@@ -9,5 +9,7 @@ public record WidgetSize
     public WidgetSizeType Type { get; init; }
     public int Columns { get; init; } = 1;
     public int Rows { get; init; } = 1;
+    public int Width { get; init; } = 80;
+    public int Height { get; init; } = 80;
     public bool IsCircular { get; init; }
 }
