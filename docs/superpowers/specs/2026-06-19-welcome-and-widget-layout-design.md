@@ -100,6 +100,32 @@
 - 默认值 `0.5`（即 8px）。
 - 在 [AppSettingsWindow.axaml](file:///workspace/FullCompo.App/Views/AppSettingsWindow.axaml) 增加滑块。
 
+## 天气组件（ClassIsland 同款小米天气 API）
+
+- 使用 ClassIsland 同款接口：`https://weatherapi.market.xiaomi.com/wtr-v3/weather/all`。
+- 请求参数：
+  - `locationKey=weathercn:{城市代码}`
+  - `sign=zUFJoAR2ZVrDy1vF3D07`
+  - `isGlobal=false`
+  - `locale=zh_cn`
+  - `days=1`
+  - `latitude=0&longitude=0`
+- 新增设置项 `AppSettings.WeatherCity`（默认“北京”），在 [AppSettingsWindow.axaml](file:///workspace/FullCompo.App/Views/AppSettingsWindow.axaml) 增加城市输入框。
+- 内置常见城市代码映射（北京、上海、广州、深圳、杭州、成都等 30+），找不到时回退北京。
+- 天气组件改为显示彩色图标 + 温度，图标先用彩色 Emoji（☀️🌤️☁️🌧️⛈️❄️等），后续可替换为图片资源。
+- 每 10 分钟自动刷新一次。
+
+### 文件变更
+
+- 新增：`FullCompo.Core/Abstractions/Services/IWeatherService.cs`
+- 新增：`FullCompo.Core/Services/WeatherService.cs`
+- 新增：`FullCompo.Core/Models/WeatherData.cs`
+- 新增：`FullCompo.Core/Helpers/WeatherCityCodes.cs`
+- 修改：`FullCompo.Shared/Models/AppSettings.cs`（增加 WeatherCity）
+- 修改：`FullCompo.App/Views/AppSettingsWindow.axaml` + `.axaml.cs`（增加城市设置）
+- 修改：`FullCompo.App/Program.cs`（注册 WeatherService 单例）
+- 修改：`FullCompo.Widgets.Builtin/WeatherWidget.cs`（调用天气服务显示实时数据）
+
 ## 兼容性
 
 - 用户首次运行：弹出欢迎页。
