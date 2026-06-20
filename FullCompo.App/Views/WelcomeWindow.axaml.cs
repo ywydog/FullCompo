@@ -317,7 +317,7 @@ public partial class WelcomeWindow : Window
             Bitmap? bitmap = null;
             try
             {
-                using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+                using var stream = AssetLoader.Open(new Uri("avares://FullCompo/Assets/logo.png"));
                 bitmap = new Bitmap(stream);
             }
             catch

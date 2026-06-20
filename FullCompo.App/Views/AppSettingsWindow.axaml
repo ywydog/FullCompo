@@ -19,7 +19,7 @@
                 <StackPanel DockPanel.Dock="Left"
                             Orientation="Horizontal"
                             Spacing="10">
-                    <Image Source="avares://FullCompo.App/Assets/logo.png"
+                    <Image Source="avares://FullCompo/Assets/logo.png"
                            Width="18"
                            Height="18"
                            VerticalAlignment="Center" />

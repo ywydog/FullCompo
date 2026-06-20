@@ -53,7 +53,11 @@ public partial class PanelWindow : Window
         ReloadLayout();
         UpdatePosition();
 
-        Opened += (_, _) => ApplyClickThrough();
+        Opened += (_, _) =>
+        {
+            UpdatePosition();
+            ApplyClickThrough();
+        };
     }
 
     private double GetSpacingPixels()

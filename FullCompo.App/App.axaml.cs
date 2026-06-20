@@ -59,20 +59,6 @@ public partial class App : Application
                 configService = _services.GetRequiredService<IConfigService>();
             }
 
-            if (configService.AppSettings.ShowTrayIcon)
-            {
-                try
-                {
-                    SetupTrayIcon();
-                }
-                catch (Exception ex)
-                {
-                    var logger = _services.GetService<ILogger<App>>();
-                    logger?.LogError(ex, "Failed to setup tray icon");
-                    AppLog.WriteException("SetupTrayIcon", ex);
-                }
-            }
-
             if (configService.AppSettings.IsFirstRun)
             {
                 try
@@ -83,22 +69,25 @@ public partial class App : Application
                     };
                     welcome.Completed += (_, _) =>
                     {
-                        try { _panelService.CreateOrUpdatePanels(); }
+                        try
+                        {
+                            if (configService.AppSettings.ShowTrayIcon)
+                            {
+                                SetupTrayIcon();
+                            }
+                            _panelService.CreateOrUpdatePanels();
+                        }
                         catch (Exception ex)
                         {
-                            AppLog.WriteException("Create panels after welcome", ex);
+                            AppLog.WriteException("Create tray icon and panels after welcome", ex);
                         }
                     };
                     welcome.Closed += (_, _) =>
                     {
                         if (configService.AppSettings.IsFirstRun)
                         {
-                            // User closed welcome without finishing; still create panels.
-                            try { _panelService.CreateOrUpdatePanels(); }
-                            catch (Exception ex)
-                            {
-                                AppLog.WriteException("Create panels after welcome closed", ex);
-                            }
+                            // User closed welcome without finishing; exit instead of leaving a background app.
+                            Shutdown();
                         }
                     };
                     welcome.Show();
@@ -117,6 +106,20 @@ public partial class App : Application
             }
             else
             {
+                if (configService.AppSettings.ShowTrayIcon)
+                {
+                    try
+                    {
+                        SetupTrayIcon();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = _services.GetService<ILogger<App>>();
+                        logger?.LogError(ex, "Failed to setup tray icon");
+                        AppLog.WriteException("SetupTrayIcon", ex);
+                    }
+                }
+
                 try
                 {
                     _panelService.CreateOrUpdatePanels();
@@ -162,10 +165,11 @@ public partial class App : Application
         {
             ToolTipText = "全面组件",
             Menu = menu,
-            IsVisible = true
+            IsVisible = false
         };
 
         LoadTrayIcon();
+        _trayIcon.IsVisible = _trayIcon.Icon != null;
 
         var trayIcons = new TrayIcons { _trayIcon };
         TrayIcon.SetIcons(this, trayIcons);
@@ -202,7 +206,7 @@ public partial class App : Application
     {
         try
         {
-            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+            using var stream = AssetLoader.Open(new Uri("avares://FullCompo/Assets/logo.png"));
             return new Bitmap(stream);
         }
         catch (Exception ex)

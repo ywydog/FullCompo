@@ -19,7 +19,7 @@
                         Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1">
-                    <Image Source="avares://FullCompo.App/Assets/logo.png"
+                    <Image Source="avares://FullCompo/Assets/logo.png"
                            Stretch="Uniform"
                            Margin="12" />
                 </Border>
