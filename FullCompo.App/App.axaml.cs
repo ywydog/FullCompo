@@ -36,104 +36,122 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        RegisterBuiltinWidgets();
-
-        _themeService = _services.GetRequiredService<IThemeService>();
-        _panelService = _services.GetRequiredService<IPanelService>();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        var logger = _services.GetService<ILogger<App>>();
+        try
         {
-            // For a tray-only application we keep the lifetime alive until explicitly shut down.
-            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            logger?.LogInformation("Initializing application lifetime");
+            RegisterBuiltinWidgets();
 
-            IConfigService configService;
+            _themeService = _services.GetRequiredService<IThemeService>();
+            _panelService = _services.GetRequiredService<IPanelService>();
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                InitializeDesktopLifetime(desktop);
+            }
+
+            base.OnFrameworkInitializationCompleted();
+            logger?.LogInformation("Application lifetime initialized");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogCritical(ex, "Failed to initialize application lifetime");
+            AppLog.WriteException("App.OnFrameworkInitializationCompleted", ex);
+            throw;
+        }
+    }
+
+    private void InitializeDesktopLifetime(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var logger = _services.GetService<ILogger<App>>();
+        // For a tray-only application we keep the lifetime alive until explicitly shut down.
+        desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+        IConfigService configService;
+        try
+        {
+            configService = _services.GetRequiredService<IConfigService>();
+            _themeService.ApplyTheme(configService.AppSettings.ThemeId);
+            logger?.LogInformation("Theme applied: {ThemeId}", configService.AppSettings.ThemeId);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Failed to apply theme");
+            configService = _services.GetRequiredService<IConfigService>();
+        }
+
+        if (configService.AppSettings.IsFirstRun)
+        {
             try
             {
-                configService = _services.GetRequiredService<IConfigService>();
-                _themeService.ApplyTheme(configService.AppSettings.ThemeId);
-            }
-            catch (Exception ex)
-            {
-                var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to apply theme");
-                configService = _services.GetRequiredService<IConfigService>();
-            }
-
-            if (configService.AppSettings.IsFirstRun)
-            {
-                try
+                logger?.LogInformation("Showing welcome window");
+                var welcome = new WelcomeWindow(_services)
                 {
-                    var welcome = new WelcomeWindow(_services)
-                    {
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen
-                    };
-                    welcome.Completed += (_, _) =>
-                    {
-                        try
-                        {
-                            if (configService.AppSettings.ShowTrayIcon)
-                            {
-                                SetupTrayIcon();
-                            }
-                            _panelService.CreateOrUpdatePanels();
-                        }
-                        catch (Exception ex)
-                        {
-                            AppLog.WriteException("Create tray icon and panels after welcome", ex);
-                        }
-                    };
-                    welcome.Closed += (_, _) =>
-                    {
-                        if (configService.AppSettings.IsFirstRun)
-                        {
-                            // User closed welcome without finishing; exit instead of leaving a background app.
-                            Shutdown();
-                        }
-                    };
-                    welcome.Show();
-                    welcome.Activate();
-                    desktop.MainWindow = welcome;
-                }
-                catch (Exception ex)
-                {
-                    AppLog.WriteException("Show welcome window", ex);
-                    try { _panelService.CreateOrUpdatePanels(); }
-                    catch (Exception ex2)
-                    {
-                        AppLog.WriteException("Create panels when welcome failed", ex2);
-                    }
-                }
-            }
-            else
-            {
-                if (configService.AppSettings.ShowTrayIcon)
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    Topmost = true
+                };
+                welcome.Completed += (_, _) =>
                 {
                     try
                     {
-                        SetupTrayIcon();
+                        if (configService.AppSettings.ShowTrayIcon)
+                        {
+                            SetupTrayIcon();
+                        }
+                        _panelService.CreateOrUpdatePanels();
                     }
                     catch (Exception ex)
                     {
-                        var logger = _services.GetService<ILogger<App>>();
-                        logger?.LogError(ex, "Failed to setup tray icon");
-                        AppLog.WriteException("SetupTrayIcon", ex);
+                        AppLog.WriteException("Create tray icon and panels after welcome", ex);
                     }
-                }
-
-                try
+                };
+                welcome.Closed += (_, _) =>
                 {
-                    _panelService.CreateOrUpdatePanels();
-                }
-                catch (Exception ex)
+                    if (configService.AppSettings.IsFirstRun)
+                    {
+                        // User closed welcome without finishing; exit instead of leaving a background app.
+                        Shutdown();
+                    }
+                };
+                welcome.Show();
+                welcome.Activate();
+                welcome.Focus();
+            }
+            catch (Exception ex)
+            {
+                AppLog.WriteException("Show welcome window", ex);
+                try { _panelService.CreateOrUpdatePanels(); }
+                catch (Exception ex2)
                 {
-                    var logger = _services.GetService<ILogger<App>>();
-                    logger?.LogError(ex, "Failed to create panels");
-                    AppLog.WriteException("CreateOrUpdatePanels", ex);
+                    AppLog.WriteException("Create panels when welcome failed", ex2);
                 }
             }
         }
+        else
+        {
+            if (configService.AppSettings.ShowTrayIcon)
+            {
+                try
+                {
+                    SetupTrayIcon();
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to setup tray icon");
+                    AppLog.WriteException("SetupTrayIcon", ex);
+                }
+            }
 
-        base.OnFrameworkInitializationCompleted();
+            try
+            {
+                _panelService.CreateOrUpdatePanels();
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Failed to create panels");
+                AppLog.WriteException("CreateOrUpdatePanels", ex);
+            }
+        }
     }
 
     private void RegisterBuiltinWidgets()
@@ -253,12 +271,23 @@ public partial class App : Application
 
     private void OpenSettings()
     {
-        var window = new AppSettingsWindow(_services)
+        try
         {
-            WindowStartupLocation = WindowStartupLocation.CenterScreen
-        };
-        window.Show();
-        window.Activate();
+            var window = new AppSettingsWindow(_services)
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Topmost = true
+            };
+            window.Show();
+            window.Activate();
+            window.Focus();
+        }
+        catch (Exception ex)
+        {
+            var logger = _services.GetService<ILogger<App>>();
+            logger?.LogError(ex, "Failed to open settings window");
+            AppLog.WriteException("OpenSettings", ex);
+        }
     }
 
     private void Shutdown()

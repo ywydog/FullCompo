@@ -20,6 +20,22 @@ class Program
     {
         IHost? host = null;
         var logPath = Path.Combine(Path.GetTempPath(), "FullCompo_Crash.log");
+        void AppendLog(string message)
+        {
+            try { File.AppendAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n"); }
+            catch { }
+        }
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            AppendLog($"Unhandled exception: {e.ExceptionObject}");
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            AppendLog($"Unobserved task exception: {e.Exception}");
+            e.SetObserved();
+        };
+
         try
         {
             File.WriteAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting FullCompo...\n");
@@ -27,32 +43,32 @@ class Program
             try
             {
                 VelopackApp.Build().Run();
-                File.AppendAllText(logPath, "[OK] Velopack initialized\n");
+                AppendLog("[OK] Velopack initialized");
             }
             catch (Exception vpEx)
             {
                 // Velopack may exit here if another instance is already running (single-instance).
-                File.AppendAllText(logPath, $"[WARN] Velopack init skipped: {vpEx.Message}\n");
+                AppendLog($"[WARN] Velopack init skipped: {vpEx.Message}");
             }
 
-            File.AppendAllText(logPath, "[..] Building host...\n");
+            AppendLog("[..] Building host...");
             host = CreateHostBuilder(args).Build();
-            File.AppendAllText(logPath, "[OK] Host built\n");
+            AppendLog("[OK] Host built");
 
             // Pre-load configuration before starting Avalonia
-            File.AppendAllText(logPath, "[..] Loading config...\n");
+            AppendLog("[..] Loading config...");
             var configService = host.Services.GetRequiredService<IConfigService>();
             configService.Load();
-            File.AppendAllText(logPath, "[OK] Config loaded\n");
+            AppendLog("[OK] Config loaded");
 
-            File.AppendAllText(logPath, "[..] Loading themes...\n");
+            AppendLog("[..] Loading themes...");
             var themeService = host.Services.GetRequiredService<IThemeService>();
             themeService.LoadThemes();
-            File.AppendAllText(logPath, "[OK] Themes loaded\n");
+            AppendLog("[OK] Themes loaded");
             // Note: ApplyTheme is called later in App.OnFrameworkInitializationCompleted
             // because Application.Current is null here.
 
-            File.AppendAllText(logPath, "[..] Starting Avalonia...\n");
+            AppendLog("[..] Starting Avalonia...");
             BuildAvaloniaApp(host.Services)
                 .StartWithClassicDesktopLifetime(args);
         }

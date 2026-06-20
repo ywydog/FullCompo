@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -200,7 +201,99 @@ public partial class PanelWindow : Window
             host.SetEditMode(isEditMode);
         }
 
+        if (isEditMode)
+        {
+            WindowState = WindowState.FullScreen;
+            ShowEditToolbar();
+        }
+        else
+        {
+            HideEditToolbar();
+            WindowState = WindowState.Normal;
+            UpdatePosition();
+        }
+
         ApplyClickThrough();
+    }
+
+    private Border? _editToolbar;
+
+    private void ShowEditToolbar()
+    {
+        if (_editToolbar != null) return;
+
+        var stack = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8
+        };
+
+        stack.Children.Add(CreateToolbarButton("重置视图", () =>
+        {
+            ReloadLayout();
+            UpdatePosition();
+        }));
+        stack.Children.Add(CreateToolbarButton("外观", OpenAppearanceSettings));
+        stack.Children.Add(CreateToolbarButton("添加组件", ShowAddWidgetDialog));
+        stack.Children.Add(CreateToolbarButton("清空桌面", () =>
+        {
+            _config.Widgets.Clear();
+            ReloadLayout();
+            SaveLayout();
+        }));
+        stack.Children.Add(CreateToolbarButton("撤销", () => { }));
+        stack.Children.Add(CreateToolbarButton("重做", () => { }));
+
+        _editToolbar = new Border
+        {
+            Background = new SolidColorBrush(Color.Parse("#E6FFFFFF")),
+            CornerRadius = new CornerRadius(12),
+            Padding = new Thickness(12, 8),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(0, 0, 0, 40),
+            Child = stack
+        };
+
+        RootGrid.Children.Add(_editToolbar);
+    }
+
+    private void HideEditToolbar()
+    {
+        if (_editToolbar == null) return;
+        RootGrid.Children.Remove(_editToolbar);
+        _editToolbar = null;
+    }
+
+    private static Button CreateToolbarButton(string text, Action action)
+    {
+        var btn = new Button
+        {
+            Content = text,
+            Padding = new Thickness(8, 4)
+        };
+        btn.Click += (_, _) => action();
+        return btn;
+    }
+
+    private void OpenAppearanceSettings()
+    {
+        try
+        {
+            var window = new AppSettingsWindow(_services)
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Topmost = true
+            };
+            window.Show();
+            window.Activate();
+            window.Focus();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open settings from edit toolbar");
+            AppLog.WriteException("PanelWindow.OpenAppearanceSettings", ex);
+        }
     }
 
     private void ApplyClickThrough()

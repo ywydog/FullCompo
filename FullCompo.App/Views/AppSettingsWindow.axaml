@@ -10,7 +10,6 @@
         MinWidth="720"
         MinHeight="480"
         WindowStartupLocation="CenterScreen"
-        ExtendClientAreaToDecorationsHint="True"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
     <Grid RowDefinitions="40,*">
         <Border Grid.Row="0"
@@ -33,8 +32,7 @@
                             Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
-                            Spacing="12"
-                            Margin="0,0,120,0">
+                            Spacing="12">
                     <TextBlock VerticalAlignment="Center"
                                FontSize="12"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
