@@ -6,6 +6,8 @@ public class AppSettings
     public string ThemeId { get; set; } = "dark";
     public bool RunOnStartup { get; set; }
     public bool ShowTrayIcon { get; set; } = true;
-    public bool ClickThrough { get; set; }
+    public bool ClickThrough { get; set; } = true;
+    public double WidgetSpacing { get; set; } = 0.5;
     public string EditModeShortcut { get; set; } = "Ctrl+Shift+E";
+    public bool IsFirstRun { get; set; } = true;
 }

@@ -76,9 +76,9 @@ public class ConfigService : IConfigService
                 Spacing = 8,
                 Widgets = new List<WidgetInstanceConfig>
                 {
-                    new() { WidgetId = "builtin.date", Column = 0, Row = 0, ColumnSpan = 1, RowSpan = 1 },
-                    new() { WidgetId = "builtin.weather", Column = 1, Row = 0, ColumnSpan = 1, RowSpan = 1 },
-                    new() { WidgetId = "builtin.clock", Column = 2, Row = 0, ColumnSpan = 2, RowSpan = 2 }
+                    new() { WidgetId = "builtin.date", Column = 0, Row = 0, ColumnSpan = 2, RowSpan = 1, SizeId = "short-bar" },
+                    new() { WidgetId = "builtin.weather", Column = 0, Row = 1, ColumnSpan = 2, RowSpan = 1, SizeId = "short-bar" },
+                    new() { WidgetId = "builtin.clock", Column = 2, Row = 0, ColumnSpan = 2, RowSpan = 2, SizeId = "square" }
                 }
             }
         };
@@ -88,6 +88,6 @@ public class ConfigService : IConfigService
     public string GetConfigDirectory()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "FullCompo");
+        return Path.Combine(appData, "FullCompo", "data");
     }
 }

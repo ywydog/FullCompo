@@ -21,6 +21,10 @@
 
                 <TextBlock Text="穿透点击（运行时鼠标可穿透面板）" />
                 <ToggleSwitch x:Name="ClickThroughToggle" />
+
+                <TextBlock Text="组件间距" />
+                <Slider x:Name="SpacingSlider" Minimum="0" Maximum="2" TickFrequency="0.1" IsSnapToTickEnabled="True" />
+                <TextBlock x:Name="SpacingValueText" Foreground="Gray" FontSize="12" />
             </StackPanel>
         </ScrollViewer>
 

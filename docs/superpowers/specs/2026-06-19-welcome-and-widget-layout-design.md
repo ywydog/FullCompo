@@ -84,6 +84,22 @@
 - 修改：`FullCompo.Widgets.Builtin/WeatherWidget.cs`
 - 修改：`FullCompo.Widgets.Builtin/ClockWidget.cs`
 
+## 鼠标穿透
+
+面板必须支持真正的鼠标穿透（置顶时也能点击到桌面/其他窗口）：
+
+- Windows 平台：通过 `SetWindowLong` + `WS_EX_TRANSPARENT` 实现真正的 OS 级穿透。
+- 编辑模式下自动关闭穿透，方便拖拽组件。
+- 设置项 `AppSettings.ClickThrough` 默认开启。
+- 仅在非编辑模式且设置开启时应用穿透。
+
+## 组件间距设置
+
+- 设置项：`AppSettings.WidgetSpacing`（double，范围 0.0 ~ 2.0）。
+- 实际像素间距 = `WidgetSpacing × 16`。
+- 默认值 `0.5`（即 8px）。
+- 在 [AppSettingsWindow.axaml](file:///workspace/FullCompo.App/Views/AppSettingsWindow.axaml) 增加滑块。
+
 ## 兼容性
 
 - 用户首次运行：弹出欢迎页。

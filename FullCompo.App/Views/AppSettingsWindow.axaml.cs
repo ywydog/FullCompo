@@ -39,6 +39,8 @@ public partial class AppSettingsWindow : Window
         var startupToggle = this.FindControl<ToggleSwitch>("StartupToggle");
         var trayToggle = this.FindControl<ToggleSwitch>("TrayToggle");
         var clickThroughToggle = this.FindControl<ToggleSwitch>("ClickThroughToggle");
+        var spacingSlider = this.FindControl<Slider>("SpacingSlider");
+        var spacingValueText = this.FindControl<TextBlock>("SpacingValueText");
         var saveButton = this.FindControl<Button>("SaveButton");
         var cancelButton = this.FindControl<Button>("CancelButton");
 
@@ -51,6 +53,22 @@ public partial class AppSettingsWindow : Window
         if (trayToggle != null) trayToggle.IsChecked = _configService.AppSettings.ShowTrayIcon;
         if (clickThroughToggle != null) clickThroughToggle.IsChecked = _configService.AppSettings.ClickThrough;
 
+        if (spacingSlider != null)
+        {
+            spacingSlider.Value = _configService.AppSettings.WidgetSpacing;
+            spacingSlider.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == Slider.ValueProperty && spacingValueText != null)
+                {
+                    spacingValueText.Text = $"当前: {spacingSlider.Value:F1}（约 {spacingSlider.Value * 16:F0}px）";
+                }
+            };
+        }
+        if (spacingValueText != null)
+        {
+            spacingValueText.Text = $"当前: {_configService.AppSettings.WidgetSpacing:F1}（约 {_configService.AppSettings.WidgetSpacing * 16:F0}px）";
+        }
+
         if (saveButton != null) saveButton.Click += (_, _) => Save();
         if (cancelButton != null) cancelButton.Click += (_, _) => Close();
     }
@@ -61,6 +79,7 @@ public partial class AppSettingsWindow : Window
         var startupToggle = this.FindControl<ToggleSwitch>("StartupToggle");
         var trayToggle = this.FindControl<ToggleSwitch>("TrayToggle");
         var clickThroughToggle = this.FindControl<ToggleSwitch>("ClickThroughToggle");
+        var spacingSlider = this.FindControl<Slider>("SpacingSlider");
 
         if (themeBox?.SelectedItem is string themeName)
         {
@@ -75,6 +94,7 @@ public partial class AppSettingsWindow : Window
         if (startupToggle != null) _configService.AppSettings.RunOnStartup = startupToggle.IsChecked ?? false;
         if (trayToggle != null) _configService.AppSettings.ShowTrayIcon = trayToggle.IsChecked ?? false;
         if (clickThroughToggle != null) _configService.AppSettings.ClickThrough = clickThroughToggle.IsChecked ?? false;
+        if (spacingSlider != null) _configService.AppSettings.WidgetSpacing = spacingSlider.Value;
 
         _configService.Save();
         Close();

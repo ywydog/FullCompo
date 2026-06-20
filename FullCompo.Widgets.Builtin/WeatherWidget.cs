@@ -16,7 +16,8 @@ public class WeatherWidget : WidgetBase
 
     public override IEnumerable<WidgetSize> SupportedSizes => new[]
     {
-        new WidgetSize { Id = "weather-small", Name = "小", Type = WidgetSizeType.Small, Columns = 1, Rows = 1 }
+        WidgetSizePresets.ShortBar,
+        WidgetSizePresets.Square
     };
 
     public override Control CreateView(WidgetContext context)
@@ -25,17 +26,26 @@ public class WeatherWidget : WidgetBase
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            FontSize = 14,
-            Foreground = new SolidColorBrush(Colors.White),
-            Text = "☁ 27°C"
+            FontWeight = FontWeight.Bold,
+            Text = "☁ 27°C",
+            Foreground = GetForegroundBrush()
         };
 
-        return new Border
+        return new Viewbox
         {
-            Background = new SolidColorBrush(Color.Parse("#33FFFFFF")),
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(8),
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
             Child = textBlock
         };
+    }
+
+    private static IBrush GetForegroundBrush()
+    {
+        if (Application.Current?.Resources.TryGetValue("ThemeForegroundColor", out var value) == true && value is IBrush brush)
+        {
+            return brush;
+        }
+        return new SolidColorBrush(Colors.White);
     }
 }

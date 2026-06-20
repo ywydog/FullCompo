@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="FullCompo.App.Views.WelcomeWindow"
+        Title="欢迎使用 FullCompo"
+        Width="720"
+        Height="480"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        CanResize="False">
+    <Grid ColumnDefinitions="200,*">
+        <!-- 左侧导航 -->
+        <Border Grid.Column="0" Background="#F0F0F0" Padding="24,32">
+            <StackPanel Spacing="12">
+                <Image Width="48"
+                       Height="48"
+                       Source="avares://FullCompo.App/Assets/logo.png"
+                       HorizontalAlignment="Left" />
+                <TextBlock Text="FullCompo"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="#1A1A1A" />
+                <TextBlock Text="设置向导"
+                           FontSize="12"
+                           Foreground="#666666" />
+                <StackPanel x:Name="StepList"
+                            Spacing="10"
+                            Margin="0,20,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- 右侧内容 -->
+        <Grid Grid.Column="1" RowDefinitions="*,Auto" Background="#FAFAFA">
+            <ScrollViewer Grid.Row="0" Padding="32,32,32,16">
+                <ContentControl x:Name="StepContent" />
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,0,32,24">
+                <Button x:Name="BackButton" Content="上一步" />
+                <Button x:Name="NextButton" Content="下一步" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

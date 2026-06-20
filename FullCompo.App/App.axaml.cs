@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -5,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using FullCompo.App.Helpers;
 using FullCompo.App.Views;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
@@ -42,27 +44,19 @@ public partial class App : Application
         {
             desktop.MainWindow = new Window { IsVisible = false };
 
-            // Apply theme now that Application.Current is available
+            IConfigService configService;
             try
             {
-                var configService = _services.GetRequiredService<IConfigService>();
+                configService = _services.GetRequiredService<IConfigService>();
                 _themeService.ApplyTheme(configService.AppSettings.ThemeId);
             }
             catch (Exception ex)
             {
                 var logger = _services.GetService<ILogger<App>>();
                 logger?.LogError(ex, "Failed to apply theme");
+                configService = _services.GetRequiredService<IConfigService>();
             }
 
-            try
-            {
-                _panelService.CreateOrUpdatePanels();
-            }
-            catch (Exception ex)
-            {
-                var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to create panels");
-            }
             try
             {
                 SetupTrayIcon();
@@ -71,6 +65,56 @@ public partial class App : Application
             {
                 var logger = _services.GetService<ILogger<App>>();
                 logger?.LogError(ex, "Failed to setup tray icon");
+            }
+
+            if (configService.AppSettings.IsFirstRun)
+            {
+                try
+                {
+                    var welcome = new WelcomeWindow(_services);
+                    welcome.Completed += (_, _) =>
+                    {
+                        try { _panelService.CreateOrUpdatePanels(); }
+                        catch (Exception ex)
+                        {
+                            AppLog.WriteException("Create panels after welcome", ex);
+                        }
+                    };
+                    welcome.Closed += (_, _) =>
+                    {
+                        if (configService.AppSettings.IsFirstRun)
+                        {
+                            // User closed welcome without finishing; still create panels.
+                            try { _panelService.CreateOrUpdatePanels(); }
+                            catch (Exception ex)
+                            {
+                                AppLog.WriteException("Create panels after welcome closed", ex);
+                            }
+                        }
+                    };
+                    welcome.Show();
+                }
+                catch (Exception ex)
+                {
+                    AppLog.WriteException("Show welcome window", ex);
+                    try { _panelService.CreateOrUpdatePanels(); }
+                    catch (Exception ex2)
+                    {
+                        AppLog.WriteException("Create panels when welcome failed", ex2);
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    _panelService.CreateOrUpdatePanels();
+                }
+                catch (Exception ex)
+                {
+                    var logger = _services.GetService<ILogger<App>>();
+                    logger?.LogError(ex, "Failed to create panels");
+                }
             }
         }
 
@@ -131,13 +175,20 @@ public partial class App : Application
 
     private void ToggleEditMode()
     {
-        if (_panelService.IsEditMode)
+        try
         {
-            _panelService.ExitEditMode();
+            if (_panelService.IsEditMode)
+            {
+                _panelService.ExitEditMode();
+            }
+            else
+            {
+                _panelService.EnterEditMode();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _panelService.EnterEditMode();
+            AppLog.WriteException("Toggle edit mode", ex);
         }
     }
 

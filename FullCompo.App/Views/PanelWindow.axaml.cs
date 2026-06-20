@@ -1,9 +1,14 @@
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Platform;
 using FullCompo.App.Controls;
+using FullCompo.App.Helpers;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
@@ -26,6 +31,15 @@ public partial class PanelWindow : Window
     public PanelConfig Config => _config;
     public bool IsEditMode { get; private set; }
 
+    private const int GWL_EXSTYLE = -20;
+    private const int WS_EX_TRANSPARENT = 0x20;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
     public PanelWindow(PanelConfig config, IServiceProvider services)
     {
         _config = config;
@@ -38,6 +52,20 @@ public partial class PanelWindow : Window
         SetupContextMenu();
         ReloadLayout();
         UpdatePosition();
+
+        Opened += (_, _) => ApplyClickThrough();
+    }
+
+    private double GetSpacingPixels()
+    {
+        try
+        {
+            return _configService.AppSettings.WidgetSpacing * 16;
+        }
+        catch
+        {
+            return 8;
+        }
     }
 
     private void InitializeComponent()
@@ -92,7 +120,8 @@ public partial class PanelWindow : Window
             {
                 widget.OnActivated(context);
                 var view = widget.CreateView(context);
-                view.Margin = new Thickness(_config.Spacing / 2);
+                var spacing = GetSpacingPixels();
+                view.Margin = new Thickness(spacing / 2);
 
                 var host = new WidgetHost(this, widgetConfig, widget);
                 host.SetWidgetView(view);
@@ -121,9 +150,10 @@ public partial class PanelWindow : Window
             var screen = Screens?.ScreenFromWindow(this);
             var bounds = screen?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
 
-            var totalWidth = _config.Columns * _config.CellWidth + (_config.Columns - 1) * _config.Spacing + _config.MarginLeft + _config.MarginRight + 16;
+            var spacing = GetSpacingPixels();
+            var totalWidth = _config.Columns * _config.CellWidth + (_config.Columns - 1) * spacing + _config.MarginLeft + _config.MarginRight + 16;
             var maxRow = _config.Widgets.Any() ? _config.Widgets.Max(w => w.Row + w.RowSpan) : 1;
-            var totalHeight = maxRow * _config.CellHeight + (maxRow - 1) * _config.Spacing + _config.MarginTop + _config.MarginBottom + 16;
+            var totalHeight = maxRow * _config.CellHeight + (maxRow - 1) * spacing + _config.MarginTop + _config.MarginBottom + 16;
 
             Width = totalWidth;
             Height = totalHeight;
@@ -161,37 +191,50 @@ public partial class PanelWindow : Window
         PanelBorder.IsHitTestVisible = isEditMode;
         PanelBorder.Opacity = isEditMode ? 1.0 : _services.GetRequiredService<IThemeService>().CurrentTheme.Opacity;
 
-        ApplyClickThrough();
-
         foreach (var host in _widgetHosts)
         {
             host.SetEditMode(isEditMode);
         }
+
+        ApplyClickThrough();
     }
 
     private void ApplyClickThrough()
     {
-        var clickThrough = _services.GetRequiredService<IConfigService>().AppSettings.ClickThrough && !IsEditMode;
-
-        // Avalonia doesn't have a direct ClickThrough API, but we can disable hit test on the window content
-        // and use platform-specific APIs for full click-through. This is a best-effort implementation.
-        if (clickThrough)
+        try
         {
-            PanelBorder.IsHitTestVisible = false;
-            WidgetGrid.IsHitTestVisible = false;
+            var clickThrough = _configService.AppSettings.ClickThrough && !IsEditMode;
+
+            // Internal hit-test handling
+            PanelBorder.IsHitTestVisible = !clickThrough || IsEditMode;
+            WidgetGrid.IsHitTestVisible = !clickThrough || IsEditMode;
             foreach (var host in _widgetHosts)
             {
-                host.IsHitTestVisible = false;
+                host.IsHitTestVisible = !clickThrough || IsEditMode;
+            }
+
+            // Windows OS-level click-through
+            if (OperatingSystem.IsWindows())
+            {
+                var handle = this.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+                if (handle != IntPtr.Zero)
+                {
+                    var exStyle = GetWindowLong(handle, GWL_EXSTYLE);
+                    if (clickThrough)
+                    {
+                        SetWindowLong(handle, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
+                    }
+                    else
+                    {
+                        SetWindowLong(handle, GWL_EXSTYLE, exStyle & ~WS_EX_TRANSPARENT);
+                    }
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            PanelBorder.IsHitTestVisible = true;
-            WidgetGrid.IsHitTestVisible = true;
-            foreach (var host in _widgetHosts)
-            {
-                host.IsHitTestVisible = IsEditMode;
-            }
+            _logger.LogWarning(ex, "Failed to apply click-through");
+            AppLog.WriteException("PanelWindow.ApplyClickThrough", ex);
         }
     }
 
