@@ -13,7 +13,7 @@ public sealed class SettingsPageFactory : INavigationPageFactory
         _viewModel = viewModel;
     }
 
-    public object GetPage(Type type)
+    public Control GetPage(Type type)
     {
         if (Activator.CreateInstance(type) is not Control control)
         {
@@ -24,8 +24,14 @@ public sealed class SettingsPageFactory : INavigationPageFactory
         return control;
     }
 
-    public object GetPageFromObject(object target)
+    public Control GetPageFromObject(object target)
     {
-        return target;
+        if (target is Control control)
+        {
+            control.DataContext = _viewModel;
+            return control;
+        }
+
+        throw new InvalidOperationException($"Unable to create page from object {target}");
     }
 }
