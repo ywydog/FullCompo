@@ -113,7 +113,7 @@
 - 新增设置项 `AppSettings.WeatherCity`（默认“北京”），在 [AppSettingsWindow.axaml](file:///workspace/FullCompo.App/Views/AppSettingsWindow.axaml) 增加城市输入框。
 - 内置常见城市代码映射（北京、上海、广州、深圳、杭州、成都等 30+），找不到时回退北京。
 - 天气组件改为显示彩色图标 + 温度，图标先用彩色 Emoji（☀️🌤️☁️🌧️⛈️❄️等），后续可替换为图片资源。
-- 每 10 分钟自动刷新一次。
+- 刷新间隔改为 1–3 分钟可调，默认 2 分钟。
 
 ### 文件变更
 
@@ -125,6 +125,25 @@
 - 修改：`FullCompo.App/Views/AppSettingsWindow.axaml` + `.axaml.cs`（增加城市设置）
 - 修改：`FullCompo.App/Program.cs`（注册 WeatherService 单例）
 - 修改：`FullCompo.Widgets.Builtin/WeatherWidget.cs`（调用天气服务显示实时数据）
+
+## 设置页（ClassIsland 风格 1:1 还原，仅保留已有功能）
+
+重新设计 `AppSettingsWindow` 为左侧导航 + 右侧内容区：
+
+| 导航项 | 包含设置 |
+|---|---|
+| 常规 | 语言、开机自启、显示托盘图标、鼠标穿透、编辑模式快捷键 |
+| 外观 | 主题、组件间距 |
+| 天气 | 城市、刷新间隔（1–3 分钟） |
+| 关于 | Logo、版本号 |
+
+- 左侧导航宽度 200，选中项高亮。
+- 右侧内容切换时做简单的淡入/位移动画。
+- 底部放置“保存”和“取消”按钮。
+
+### 文件变更
+
+- 重写：`FullCompo.App/Views/AppSettingsWindow.axaml` + `.axaml.cs`
 
 ## 兼容性
 

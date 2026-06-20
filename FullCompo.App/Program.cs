@@ -82,6 +82,7 @@ class Program
                 services.AddSingleton<IWidgetRegistry, WidgetRegistry>();
                 services.AddSingleton<IPanelService, PanelService>();
                 services.AddSingleton<BuiltinWidgetProvider>();
+                services.AddSingleton<IWeatherService, WeatherService>();
 
                 services.AddLogging(builder =>
                 {

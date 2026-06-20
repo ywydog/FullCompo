@@ -2,9 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
 using FullCompo.Shared.Enums;
 using FullCompo.Shared.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FullCompo.Widgets.Builtin;
 
@@ -22,13 +24,20 @@ public class WeatherWidget : WidgetBase
 
     public override Control CreateView(WidgetContext context)
     {
+        var weatherService = context.Services.GetRequiredService<IWeatherService>();
+
         var textBlock = new TextBlock
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             FontWeight = FontWeight.Bold,
-            Text = "☁ 27°C",
+            Text = FormatWeather(weatherService.CurrentWeather),
             Foreground = GetForegroundBrush()
+        };
+
+        weatherService.WeatherUpdated += (_, _) =>
+        {
+            textBlock.Text = FormatWeather(weatherService.CurrentWeather);
         };
 
         return new Viewbox
@@ -38,6 +47,15 @@ public class WeatherWidget : WidgetBase
             VerticalAlignment = VerticalAlignment.Stretch,
             Child = textBlock
         };
+    }
+
+    private static string FormatWeather(WeatherData data)
+    {
+        if (string.IsNullOrEmpty(data.City))
+        {
+            return "☁ --";
+        }
+        return $"{data.Icon} {data.Temperature:F0}°C";
     }
 
     private static IBrush GetForegroundBrush()

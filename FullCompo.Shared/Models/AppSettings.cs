@@ -10,4 +10,7 @@ public class AppSettings
     public double WidgetSpacing { get; set; } = 0.5;
     public string EditModeShortcut { get; set; } = "Ctrl+Shift+E";
     public bool IsFirstRun { get; set; } = true;
+
+    public string WeatherCity { get; set; } = "北京";
+    public int WeatherRefreshIntervalMinutes { get; set; } = 2;
 }
