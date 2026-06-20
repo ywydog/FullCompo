@@ -1,56 +1,97 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:animation="using:Avalonia.Animation"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
         x:Class="FullCompo.App.Views.AppSettingsWindow"
-        Title="设置"
-        Width="800"
-        Height="560"
-        MinWidth="640"
+        Title="应用设置"
+        Width="900"
+        Height="640"
+        MinWidth="720"
         MinHeight="480"
         WindowStartupLocation="CenterScreen"
-        Background="White">
-    <Grid ColumnDefinitions="200,*">
-        <Border Grid.Column="0"
-                Background="#F5F5F5"
-                BorderBrush="#22000000"
-                BorderThickness="0,0,1,0">
-            <Grid RowDefinitions="Auto,*">
-                <TextBlock Grid.Row="0"
-                           Text="设置"
-                           FontSize="20"
-                           FontWeight="Bold"
-                           Margin="20,20,20,12"
-                           Foreground="#1A1A1A" />
-                <ListBox x:Name="NavList"
-                         Grid.Row="1"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Margin="8,0,8,12">
-                    <ListBoxItem Content="常规" />
-                    <ListBoxItem Content="外观" />
-                    <ListBoxItem Content="天气" />
-                    <ListBoxItem Content="关于" />
-                </ListBox>
-            </Grid>
+        ExtendClientAreaToDecorationsHint="True"
+        WindowDecorations="Full"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+    <Grid RowDefinitions="40,*">
+        <Border Grid.Row="0"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                WindowDecorationProperties.ElementRole="TitleBar">
+            <DockPanel Margin="12,0">
+                <StackPanel DockPanel.Dock="Left"
+                            Orientation="Horizontal"
+                            Spacing="10">
+                    <Image Source="avares://FullCompo.App/Assets/logo.png"
+                           Width="18"
+                           Height="18"
+                           VerticalAlignment="Center" />
+                    <TextBlock Text="应用设置"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Spacing="12"
+                            Margin="0,0,120,0">
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="{Binding Version}" />
+                </StackPanel>
+            </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" RowDefinitions="*,Auto">
-            <Border Grid.Row="0" Background="White">
-                <TransitioningContentControl x:Name="ContentHost" Padding="24">
-                    <TransitioningContentControl.Transition>
-                        <animation:PageSlide Duration="0:0:0.22" SlideAxis="Horizontal" />
-                    </TransitioningContentControl.Transition>
-                </TransitioningContentControl>
-            </Border>
+        <ui:NavigationView Grid.Row="1"
+                           x:Name="Nav"
+                           PaneDisplayMode="Left"
+                             IsBackButtonVisible="Collapsed"
+                           IsPaneToggleButtonVisible="False"
+                           IsSettingsVisible="False"
+                           OpenPaneLength="220"
+                           Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                           SelectionChanged="Nav_SelectionChanged">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Tag="General" Content="常规">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Home" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Tag="Appearance" Content="外观">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Palette" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Tag="Weather" Content="天气">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Cloud" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Tag="About" Content="关于">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Info" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.MenuItems>
 
-            <StackPanel Grid.Row="1"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="8"
-                        Margin="24,16,24,24">
-                <Button x:Name="SaveButton" Content="保存" />
-                <Button x:Name="CancelButton" Content="取消" />
-            </StackPanel>
-        </Grid>
+            <Grid RowDefinitions="*,Auto">
+                <ui:Frame Grid.Row="0" x:Name="ContentFrame" />
+                <Border Grid.Row="1"
+                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="24,16">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Spacing="8">
+                        <Button Content="保存"
+                                Command="{Binding SaveCommand}" />
+                        <Button Content="取消"
+                                Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ui:NavigationView>
     </Grid>
 </Window>

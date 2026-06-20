@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FullCompo.App.ViewModels"
+             xmlns:controls="using:FullCompo.App.Controls"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="FullCompo.App.Views.SettingPages.WeatherSettingsPage"
+             x:DataType="vm:AppSettingsWindowViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="4" Margin="32,24,32,24">
+            <TextBlock Text="天气"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,0,0,20" />
+
+            <controls:SettingsCard Header="城市" Description="天气组件显示的城市，例如：北京">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="MapPin" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <TextBox Width="160"
+                             Watermark="例如 北京"
+                             Text="{Binding Settings.WeatherCity}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="刷新间隔" Description="天气数据自动刷新频率（1-3 分钟）">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="Refresh" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Slider Width="180"
+                                Minimum="1"
+                                Maximum="3"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding Settings.WeatherRefreshIntervalMinutes}" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="{Binding Settings.WeatherRefreshIntervalMinutes, StringFormat='当前: {0} 分钟'}" />
+                    </StackPanel>
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FullCompo.App.ViewModels"
+             xmlns:controls="using:FullCompo.App.Controls"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="FullCompo.App.Views.SettingPages.AppearanceSettingsPage"
+             x:DataType="vm:AppSettingsWindowViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="4" Margin="32,24,32,24">
+            <TextBlock Text="外观"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,0,0,20" />
+
+            <controls:SettingsCard Header="主题" Description="应用整体配色风格">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="Color" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <ComboBox Width="160"
+                              ItemsSource="{Binding AvailableThemes}"
+                              DisplayMemberBinding="{Binding Name}"
+                              SelectedItem="{Binding SelectedTheme}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="组件间距" Description="面板组件之间的间距">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="Resize" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Slider Width="180"
+                                Minimum="0"
+                                Maximum="2"
+                                TickFrequency="0.1"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding Settings.WidgetSpacing}" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="当前: {0:F1}（约 {1:F0}px）">
+                                    <Binding Path="Settings.WidgetSpacing" />
+                                    <Binding Path="Settings.WidgetSpacing" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

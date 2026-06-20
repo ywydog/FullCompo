@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FullCompo.App.ViewModels"
+             xmlns:controls="using:FullCompo.App.Controls"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="FullCompo.App.Views.SettingPages.GeneralSettingsPage"
+             x:DataType="vm:AppSettingsWindowViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="4" Margin="32,24,32,24">
+            <TextBlock Text="常规"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,0,0,20" />
+
+            <controls:SettingsCard Header="语言" Description="应用界面显示语言">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="Globe" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <ComboBox Width="160"
+                              ItemsSource="{Binding Languages}"
+                              SelectedItem="{Binding Settings.Language}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="开机自启" Description="登录系统后自动启动应用">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="PowerButton" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <ui:ToggleSwitch IsChecked="{Binding Settings.RunOnStartup}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="显示托盘图标" Description="在系统托盘显示应用图标">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="View" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <ui:ToggleSwitch IsChecked="{Binding Settings.ShowTrayIcon}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="穿透点击" Description="运行时鼠标可穿透面板组件">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="TouchPointer" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <ui:ToggleSwitch IsChecked="{Binding Settings.ClickThrough}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard Header="编辑模式快捷键" Description="进入/退出编辑模式的快捷键">
+                <controls:SettingsCard.HeaderIcon>
+                    <ui:SymbolIcon Symbol="Keyboard" />
+                </controls:SettingsCard.HeaderIcon>
+                <controls:SettingsCard.ActionContent>
+                    <TextBox Width="200"
+                             Watermark="例如 Ctrl+Shift+E"
+                             Text="{Binding Settings.EditModeShortcut}" />
+                </controls:SettingsCard.ActionContent>
+            </controls:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

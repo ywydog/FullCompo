@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="FullCompo.App.Controls.SettingsCard"
+             x:Name="Root">
+    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource ControlCornerRadius}"
+            MinHeight="64"
+            Padding="16,12">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <ContentControl Grid.Column="0"
+                            Content="{Binding #Root.HeaderIcon}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,16,0"
+                            IsVisible="{Binding #Root.HeaderIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+                <TextBlock Text="{Binding #Root.Header}"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <TextBlock Text="{Binding #Root.Description}"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding #Root.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <ContentControl Grid.Column="2"
+                            Content="{Binding #Root.ActionContent}"
+                            VerticalAlignment="Center"
+                            Margin="16,0,0,0" />
+        </Grid>
+    </Border>
+</UserControl>
