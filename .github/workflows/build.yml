@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, trae/solo-agent-YFBn9R]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
