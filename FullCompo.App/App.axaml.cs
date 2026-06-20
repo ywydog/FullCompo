@@ -42,7 +42,8 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new Window { IsVisible = false };
+            // For a tray-only application we keep the lifetime alive until explicitly shut down.
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             IConfigService configService;
             try
@@ -57,21 +58,28 @@ public partial class App : Application
                 configService = _services.GetRequiredService<IConfigService>();
             }
 
-            try
+            if (configService.AppSettings.ShowTrayIcon)
             {
-                SetupTrayIcon();
-            }
-            catch (Exception ex)
-            {
-                var logger = _services.GetService<ILogger<App>>();
-                logger?.LogError(ex, "Failed to setup tray icon");
+                try
+                {
+                    SetupTrayIcon();
+                }
+                catch (Exception ex)
+                {
+                    var logger = _services.GetService<ILogger<App>>();
+                    logger?.LogError(ex, "Failed to setup tray icon");
+                    AppLog.WriteException("SetupTrayIcon", ex);
+                }
             }
 
             if (configService.AppSettings.IsFirstRun)
             {
                 try
                 {
-                    var welcome = new WelcomeWindow(_services);
+                    var welcome = new WelcomeWindow(_services)
+                    {
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen
+                    };
                     welcome.Completed += (_, _) =>
                     {
                         try { _panelService.CreateOrUpdatePanels(); }
@@ -93,6 +101,7 @@ public partial class App : Application
                         }
                     };
                     welcome.Show();
+                    welcome.Activate();
                 }
                 catch (Exception ex)
                 {
@@ -114,6 +123,7 @@ public partial class App : Application
                 {
                     var logger = _services.GetService<ILogger<App>>();
                     logger?.LogError(ex, "Failed to create panels");
+                    AppLog.WriteException("CreateOrUpdatePanels", ex);
                 }
             }
         }
@@ -165,11 +175,15 @@ public partial class App : Application
         {
             using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
             var bitmap = new Bitmap(stream);
-            _trayIcon!.Icon = new WindowIcon(bitmap);
+            // Tray icons on Windows are typically 16x16/32x32; scale the app logo down.
+            var scaled = bitmap.CreateScaledBitmap(new PixelSize(32, 32), BitmapInterpolationMode.HighQuality);
+            _trayIcon!.Icon = new WindowIcon(scaled);
         }
-        catch
+        catch (Exception ex)
         {
-            // Logo not found, use default empty icon
+            var logger = _services.GetService<ILogger<App>>();
+            logger?.LogWarning(ex, "Failed to load tray icon");
+            AppLog.WriteException("LoadTrayIcon", ex);
         }
     }
 

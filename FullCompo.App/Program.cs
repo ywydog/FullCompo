@@ -31,6 +31,7 @@ class Program
             }
             catch (Exception vpEx)
             {
+                // Velopack may exit here if another instance is already running (single-instance).
                 File.AppendAllText(logPath, $"[WARN] Velopack init skipped: {vpEx.Message}\n");
             }
 
