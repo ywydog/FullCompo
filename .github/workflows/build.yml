@@ -46,8 +46,7 @@ jobs:
             --mainExe FullCompo.exe `
             --outputDir ./releases/${{ matrix.rid }} `
             --runtime ${{ matrix.rid }} `
-            --channel ${{ matrix.rid }} `
-            --icon FullCompo.App/Assets/logo.ico
+            --channel ${{ matrix.rid }}
 
       - name: Prepare release zip (ClassIsland-style structure)
         shell: pwsh
