@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using FullCompo.App.Helpers;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Shared.Models;
@@ -38,6 +41,7 @@ public partial class WelcomeWindow : Window
         _themeService = services.GetRequiredService<IThemeService>();
 
         InitializeComponent();
+        LoadLogo();
 
         _lightRadio = new RadioButton { Content = "浅色", Foreground = new SolidColorBrush(Color.Parse("#1A1A1A")) };
         _darkRadio = new RadioButton { Content = "深色", Foreground = new SolidColorBrush(Color.Parse("#1A1A1A")) };
@@ -301,5 +305,35 @@ public partial class WelcomeWindow : Window
                 }
             }
         };
+    }
+
+    private void LoadLogo()
+    {
+        try
+        {
+            var image = this.FindControl<Image>("LogoImage");
+            if (image == null) return;
+
+            Bitmap? bitmap = null;
+            try
+            {
+                using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+                bitmap = new Bitmap(stream);
+            }
+            catch
+            {
+                var path = Path.Combine(AppContext.BaseDirectory, "Assets", "logo.png");
+                if (File.Exists(path))
+                {
+                    bitmap = new Bitmap(path);
+                }
+            }
+
+            image.Source = bitmap;
+        }
+        catch (Exception ex)
+        {
+            AppLog.WriteException("WelcomeWindow.LoadLogo", ex);
+        }
     }
 }

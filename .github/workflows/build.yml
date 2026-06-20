@@ -105,7 +105,7 @@ jobs:
           $commit = "${{ github.sha }}"
           $runId = "${{ github.run_id }}"
           $branch = "${{ github.ref_name }}"
-          $summary = "@
+          $summary = @"
           # Build Summary
 
           - Commit: $commit
@@ -122,5 +122,5 @@ jobs:
           - [FullCompo-win-x64.zip](https://github.com/$repo/releases/download/nightly/FullCompo-win-x64.zip)
           - [FullCompo-win-x86.zip](https://github.com/$repo/releases/download/nightly/FullCompo-win-x86.zip)
           - [FullCompo-win-arm64.zip](https://github.com/$repo/releases/download/nightly/FullCompo-win-arm64.zip)
-          @"
+          "@
           $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

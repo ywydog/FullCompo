@@ -35,6 +35,7 @@ public class PanelService : IPanelService
             var window = new PanelWindow(config, _services);
             _panels.Add(window);
             window.Show();
+            window.Activate();
         }
     }
 

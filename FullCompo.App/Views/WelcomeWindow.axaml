@@ -11,9 +11,9 @@
         <!-- 左侧导航 -->
         <Border Grid.Column="0" Background="#F0F0F0" Padding="24,32">
             <StackPanel Spacing="12">
-                <Image Width="48"
+                <Image x:Name="LogoImage"
+                       Width="48"
                        Height="48"
-                       Source="avares://FullCompo.App/Assets/logo.png"
                        HorizontalAlignment="Left" />
                 <TextBlock Text="FullCompo"
                            FontSize="18"

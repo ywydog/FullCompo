@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -102,6 +103,7 @@ public partial class App : Application
                     };
                     welcome.Show();
                     welcome.Activate();
+                    desktop.MainWindow = welcome;
                 }
                 catch (Exception ex)
                 {
@@ -173,11 +175,20 @@ public partial class App : Application
     {
         try
         {
-            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
-            var bitmap = new Bitmap(stream);
-            // Tray icons on Windows are typically 16x16/32x32; scale the app logo down.
-            var scaled = bitmap.CreateScaledBitmap(new PixelSize(32, 32), BitmapInterpolationMode.HighQuality);
-            _trayIcon!.Icon = new WindowIcon(scaled);
+            var bitmap = LoadAppLogoBitmap();
+            if (bitmap == null)
+            {
+                var logger = _services.GetService<ILogger<App>>();
+                logger?.LogWarning("Logo asset not found; tray icon will be empty");
+                return;
+            }
+
+            using (bitmap)
+            {
+                // Tray icons on Windows are typically 16x16/32x32; scale the app logo down.
+                var scaled = bitmap.CreateScaledBitmap(new PixelSize(32, 32), BitmapInterpolationMode.HighQuality);
+                _trayIcon!.Icon = new WindowIcon(scaled);
+            }
         }
         catch (Exception ex)
         {
@@ -185,6 +196,36 @@ public partial class App : Application
             logger?.LogWarning(ex, "Failed to load tray icon");
             AppLog.WriteException("LoadTrayIcon", ex);
         }
+    }
+
+    private Bitmap? LoadAppLogoBitmap()
+    {
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://FullCompo.App/Assets/logo.png"));
+            return new Bitmap(stream);
+        }
+        catch (Exception ex)
+        {
+            var logger = _services.GetService<ILogger<App>>();
+            logger?.LogWarning(ex, "Failed to load logo from Avalonia resource");
+        }
+
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Assets", "logo.png");
+            if (File.Exists(path))
+            {
+                return new Bitmap(path);
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = _services.GetService<ILogger<App>>();
+            logger?.LogWarning(ex, "Failed to load logo from output directory");
+        }
+
+        return null;
     }
 
     private void ToggleEditMode()
@@ -208,8 +249,12 @@ public partial class App : Application
 
     private void OpenSettings()
     {
-        var window = new AppSettingsWindow(_services);
+        var window = new AppSettingsWindow(_services)
+        {
+            WindowStartupLocation = WindowStartupLocation.CenterScreen
+        };
         window.Show();
+        window.Activate();
     }
 
     private void Shutdown()
