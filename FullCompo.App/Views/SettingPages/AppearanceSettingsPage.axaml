@@ -27,7 +27,7 @@
 
             <controls:SettingsCard Header="组件间距" Description="面板组件之间的间距">
                 <controls:SettingsCard.HeaderIcon>
-                    <ui:SymbolIcon Symbol="{x:Static ui:Symbol.ResizeMouseMedium}" />
+                    <ui:SymbolIcon Symbol="{x:Static ui:Symbol.Zoom}" />
                 </controls:SettingsCard.HeaderIcon>
                 <controls:SettingsCard.ActionContent>
                     <StackPanel Orientation="Horizontal" Spacing="12">
