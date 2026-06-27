@@ -25,12 +25,17 @@ public partial class DesktopSurfaceWindow : Window
     private readonly IConfigService _configService;
     private readonly IWidgetRegistry _widgetRegistry;
     private readonly IThemeService _themeService;
+    private readonly IEditHistoryService _editHistoryService;
     private readonly ILogger<DesktopSurfaceWindow> _logger;
     private readonly List<WidgetContainer> _widgetContainers = new();
 
     private bool _isEditMode;
     private WidgetContainer? _selectedContainer;
     private bool _isDragging;
+
+    private WindowState _preEditWindowState;
+    private PixelPoint _preEditPosition;
+    private Size _preEditSize;
 
     private const double GridSize = 80.0;
     private const double SnapThreshold = 20.0;
@@ -65,11 +70,13 @@ public partial class DesktopSurfaceWindow : Window
         _configService = services.GetRequiredService<IConfigService>();
         _widgetRegistry = services.GetRequiredService<IWidgetRegistry>();
         _themeService = services.GetRequiredService<IThemeService>();
+        _editHistoryService = services.GetRequiredService<IEditHistoryService>();
         _logger = services.GetRequiredService<ILogger<DesktopSurfaceWindow>>();
 
         InitializeComponent();
         SetupWindow();
         SetupToolbar();
+        _editHistoryService.StateChanged += (_, _) => UpdateToolbarState();
     }
 
     private void InitializeComponent()
@@ -243,23 +250,34 @@ public partial class DesktopSurfaceWindow : Window
         }
     }
 
+    private Button? _btnUndo;
+    private Button? _btnRedo;
+
     private void SetupToolbar()
     {
         var btnReset = this.FindControl<Button>("BtnReset");
         var btnAppearance = this.FindControl<Button>("BtnAppearance");
         var btnAdd = this.FindControl<Button>("BtnAdd");
         var btnClear = this.FindControl<Button>("BtnClear");
-        var btnUndo = this.FindControl<Button>("BtnUndo");
-        var btnRedo = this.FindControl<Button>("BtnRedo");
+        _btnUndo = this.FindControl<Button>("BtnUndo");
+        _btnRedo = this.FindControl<Button>("BtnRedo");
         var btnDone = this.FindControl<Button>("BtnDone");
 
         if (btnReset != null) btnReset.Click += (_, _) => ResetLayout();
         if (btnAppearance != null) btnAppearance.Click += (_, _) => OpenAppearance();
         if (btnAdd != null) btnAdd.Click += (_, _) => ShowSizeLibrary();
         if (btnClear != null) btnClear.Click += (_, _) => ClearAllWidgets();
-        if (btnUndo != null) btnUndo.Click += (_, _) => Undo();
-        if (btnRedo != null) btnRedo.Click += (_, _) => Redo();
+        if (_btnUndo != null) _btnUndo.Click += (_, _) => Undo();
+        if (_btnRedo != null) _btnRedo.Click += (_, _) => Redo();
         if (btnDone != null) btnDone.Click += (_, _) => ExitEditMode();
+
+        UpdateToolbarState();
+    }
+
+    private void UpdateToolbarState()
+    {
+        if (_btnUndo != null) _btnUndo.IsEnabled = _editHistoryService.CanUndo;
+        if (_btnRedo != null) _btnRedo.IsEnabled = _editHistoryService.CanRedo;
     }
 
     public void LoadWidgets()
@@ -268,6 +286,18 @@ public partial class DesktopSurfaceWindow : Window
         {
             var canvas = this.FindControl<Canvas>("WidgetsCanvas");
             if (canvas == null) return;
+
+            foreach (var existing in _widgetContainers)
+            {
+                try
+                {
+                    existing.Widget.OnDeactivated();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to deactivate widget {WidgetId}", existing.Widget.Id);
+                }
+            }
 
             canvas.Children.Clear();
             _widgetContainers.Clear();
@@ -326,6 +356,10 @@ public partial class DesktopSurfaceWindow : Window
     private void OnContainerDragStateChanged(object? sender, bool isDragging)
     {
         _isDragging = isDragging;
+        if (isDragging)
+        {
+            _editHistoryService.RecordState();
+        }
     }
 
     private void OnContainerRequestDelete(object? sender, EventArgs e)
@@ -365,7 +399,32 @@ public partial class DesktopSurfaceWindow : Window
     public void EnterEditMode()
     {
         _isEditMode = true;
+
+        // Save current layout state so we can restore it after editing
+        _preEditWindowState = WindowState;
+        _preEditPosition = Position;
+        _preEditSize = new Size(Width, Height);
+
+        // Expand to full work area so widgets can be placed anywhere
+        var workArea = Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
+        var offsetX = workArea.X - Position.X;
+        var offsetY = workArea.Y - Position.Y;
+
+        // Convert stored relative positions to fullscreen absolute positions
+        foreach (var widget in _configService.Panels.SelectMany(p => p.Widgets))
+        {
+            widget.PosX += offsetX;
+            widget.PosY += offsetY;
+        }
+
+        WindowState = WindowState.Normal;
+        Position = new PixelPoint(workArea.X, workArea.Y);
+        Width = workArea.Width;
+        Height = workArea.Height;
+
+        LoadWidgets();
         UpdateClickThrough();
+
         var overlay = this.FindControl<Canvas>("EditOverlay");
         var toolbar = this.FindControl<Border>("EditToolbar");
 
@@ -403,6 +462,28 @@ public partial class DesktopSurfaceWindow : Window
         }
 
         SaveLayout();
+
+        // Convert fullscreen absolute positions back to dock-relative positions
+        var workArea = Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
+        var offsetX = _preEditPosition.X - workArea.X;
+        var offsetY = _preEditPosition.Y - workArea.Y;
+
+        foreach (var widget in _configService.Panels.SelectMany(p => p.Widgets))
+        {
+            widget.PosX += offsetX;
+            widget.PosY += offsetY;
+        }
+
+        _configService.Save();
+
+        // Restore docked layout
+        WindowState = _preEditWindowState;
+        Position = _preEditPosition;
+        Width = _preEditSize.Width;
+        Height = _preEditSize.Height;
+        ApplyDockLayout();
+        LoadWidgets();
+
         UpdateClickThrough();
         EditModeChanged?.Invoke(this, false);
     }
@@ -534,6 +615,25 @@ public partial class DesktopSurfaceWindow : Window
         title.Text = "选择功能";
         content.Children.Clear();
 
+        // If the current widget is a real (non-placeholder) widget, offer its settings first
+        if (container.Widget.Id != "builtin.placeholder")
+        {
+            var settingsButton = new Button
+            {
+                Content = $"⚙ {container.Widget.Name} 设置",
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch
+            };
+            settingsButton.Click += (_, _) => ShowWidgetSettings(container);
+            content.Children.Add(settingsButton);
+
+            content.Children.Add(new TextBlock
+            {
+                Text = "切换到其他功能",
+                FontWeight = FontWeight.SemiBold,
+                Margin = new Thickness(0, 12, 0, 4)
+            });
+        }
+
         var supportedWidgets = GetSupportedWidgetsForSize(container.CurrentSize);
 
         foreach (var widget in supportedWidgets)
@@ -585,6 +685,8 @@ public partial class DesktopSurfaceWindow : Window
 
     private void AddPlaceholderWidget(WidgetSize size)
     {
+        _editHistoryService.RecordState();
+
         var canvas = this.FindControl<Canvas>("WidgetsCanvas");
         if (canvas == null) return;
 
@@ -616,6 +718,7 @@ public partial class DesktopSurfaceWindow : Window
 
     private void RemoveWidget(WidgetContainer container)
     {
+        _editHistoryService.RecordState();
         foreach (var panel in _configService.Panels)
         {
             if (panel.Widgets.Remove(container.Config))
@@ -631,10 +734,13 @@ public partial class DesktopSurfaceWindow : Window
             _selectedContainer = null;
             HideSidePanel();
         }
+
+        _configService.Save();
     }
 
     private void ResetLayout()
     {
+        _editHistoryService.RecordState();
         _configService.ResetToDefault();
         LoadWidgets();
     }
@@ -647,22 +753,30 @@ public partial class DesktopSurfaceWindow : Window
 
     private void ClearAllWidgets()
     {
+        _editHistoryService.RecordState();
         foreach (var panel in _configService.Panels)
         {
             panel.Widgets.Clear();
         }
 
+        _configService.Save();
         LoadWidgets();
     }
 
     private void Undo()
     {
-        // TODO: Implement undo/redo stack
+        _editHistoryService.Undo();
+        LoadWidgets();
+        DeselectAll();
+        HideSidePanel();
     }
 
     private void Redo()
     {
-        // TODO: Implement undo/redo stack
+        _editHistoryService.Redo();
+        LoadWidgets();
+        DeselectAll();
+        HideSidePanel();
     }
 
     private void SaveLayout()

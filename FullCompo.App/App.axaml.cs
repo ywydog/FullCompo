@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using FullCompo.App.Helpers;
 using FullCompo.App.Views;
 using FullCompo.Core.Abstractions;
@@ -22,7 +23,9 @@ public partial class App : Application
     private readonly IServiceProvider _services;
     private IThemeService _themeService = null!;
     private IPanelService _panelService = null!;
+    private IConfigService _configService = null!;
     private TrayIcon? _trayIcon;
+    private GlobalHotkeyHelper? _globalHotkey;
 
     public App(IServiceProvider services)
     {
@@ -40,10 +43,24 @@ public partial class App : Application
 
         _themeService = _services.GetRequiredService<IThemeService>();
         _panelService = _services.GetRequiredService<IPanelService>();
+        _configService = _services.GetRequiredService<IConfigService>();
+
+        try
+        {
+            _globalHotkey = new GlobalHotkeyHelper(
+                _configService.AppSettings.EditModeShortcut,
+                () => Dispatcher.UIThread.Post(ToggleEditMode));
+        }
+        catch (Exception ex)
+        {
+            var logger = _services.GetService<ILogger<App>>();
+            logger?.LogError(ex, "Failed to register edit mode hotkey");
+        }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            desktop.ShutdownRequested += (_, _) => _globalHotkey?.Dispose();
 
             // Apply theme now that Application.Current is available
             try

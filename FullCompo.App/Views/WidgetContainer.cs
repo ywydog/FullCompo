@@ -18,6 +18,7 @@ public class WidgetContainer : Border
     private readonly IServiceProvider _services;
     private readonly IConfigService _configService;
     private readonly IThemeService _themeService;
+    private readonly IEditHistoryService _editHistoryService;
 
     public WidgetInstanceConfig Config { get; }
     public IWidget Widget { get; private set; }
@@ -45,6 +46,7 @@ public class WidgetContainer : Border
         _services = services;
         _configService = services.GetRequiredService<IConfigService>();
         _themeService = services.GetRequiredService<IThemeService>();
+        _editHistoryService = services.GetRequiredService<IEditHistoryService>();
 
         Config = config;
         Widget = widget;
@@ -166,6 +168,20 @@ public class WidgetContainer : Border
 
     public void SetWidget(IWidget widget)
     {
+        if (widget.Id == Widget.Id) return;
+
+        _editHistoryService.RecordState();
+
+        try
+        {
+            Widget.OnDeactivated();
+        }
+        catch (Exception ex)
+        {
+            var logger = _services.GetService<Microsoft.Extensions.Logging.ILogger<WidgetContainer>>();
+            logger?.LogError(ex, "Failed to deactivate widget {WidgetId}", Widget.Id);
+        }
+
         Widget = widget;
         Config.WidgetId = widget.Id;
         _label.Text = widget.Name;
@@ -174,6 +190,9 @@ public class WidgetContainer : Border
 
     public void SetSize(WidgetSize size)
     {
+        if (size.Id == CurrentSize.Id) return;
+
+        _editHistoryService.RecordState();
         CurrentSize = size;
         Config.SizeId = size.Id;
         ApplySize();

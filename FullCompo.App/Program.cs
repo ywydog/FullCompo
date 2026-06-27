@@ -130,6 +130,7 @@ class Program
                 services.AddSingleton<IThemeService, ThemeService>();
                 services.AddSingleton<IWidgetRegistry, WidgetRegistry>();
                 services.AddSingleton<IPanelService, PanelService>();
+                services.AddSingleton<IEditHistoryService, EditHistoryService>();
                 services.AddSingleton<BuiltinWidgetProvider>();
                 services.AddSingleton<IWeatherService, WeatherService>();
                 services.AddHostedService(provider => (WeatherService)provider.GetRequiredService<IWeatherService>());
