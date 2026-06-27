@@ -17,9 +17,9 @@ public class AppSettings
     public string? CustomFontFamily { get; set; }
 
     // === 窗口 ===
-    public string DockPosition { get; set; } = "free"; // free, top, top-left, top-right, bottom, bottom-left, bottom-right, left, right
+    public string DockPosition { get; set; } = "top-right"; // free, top, top-left, top-right, bottom, bottom-left, bottom-right, left, right
     public bool Topmost { get; set; } = true;
-    public bool ClickThrough { get; set; } = true;
+    public bool ClickThrough { get; set; } = false;
     public bool HoverToFade { get; set; } = false;
     public double HoverOpacity { get; set; } = 0.3;
 

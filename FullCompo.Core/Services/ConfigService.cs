@@ -67,14 +67,15 @@ public class ConfigService : IConfigService
     {
         AppSettings = new AppSettings();
 
-        // 默认布局：单栏放在屏幕右上角（以 1920×1080 为参考，留出 16px 边距）。
-        // 组件尺寸统一使用 medium-square(140x140)，在加载时会被自动适配到当前屏幕右下角/右上角。
-        const double screenRight = 1920 - 16;
-        const double widgetWidth = 140; // medium-square
-        const double gap = 8;
-        const double top = 16;
+        // 默认布局：右上角横条面板内从左到右依次放置时钟、日期、天气。
+        // 坐标相对于 top-right 停靠窗口的左上角（窗口高度固定 140 DIP）。
+        const double left = 10;
+        const double top = 20;
+        const double gap = 12;
 
-        var colX = screenRight - widgetWidth;
+        var clockX = left;
+        var dateX = clockX + 200 + gap; // medium-hbar width
+        var weatherX = dateX + 180 + gap; // small-hbar width
 
         Panels = new List<PanelConfig>
         {
@@ -83,9 +84,9 @@ public class ConfigService : IConfigService
                 Name = "默认面板",
                 Widgets = new List<WidgetInstanceConfig>
                 {
-                    new() { WidgetId = "builtin.clock", SizeId = "medium-square", PosX = colX, PosY = top },
-                    new() { WidgetId = "builtin.date", SizeId = "medium-square", PosX = colX, PosY = top + widgetWidth + gap },
-                    new() { WidgetId = "builtin.weather", SizeId = "medium-square", PosX = colX, PosY = top + (widgetWidth + gap) * 2 }
+                    new() { WidgetId = "builtin.clock", SizeId = "medium-hbar", PosX = clockX, PosY = top },
+                    new() { WidgetId = "builtin.date", SizeId = "small-hbar", PosX = dateX, PosY = top + 30 },
+                    new() { WidgetId = "builtin.weather", SizeId = "medium-hbar", PosX = weatherX, PosY = top }
                 }
             }
         };

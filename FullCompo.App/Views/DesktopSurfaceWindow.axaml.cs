@@ -340,6 +340,7 @@ public partial class DesktopSurfaceWindow : Window
         container.SelectionChanged += OnContainerSelectionChanged;
         container.DragStateChanged += OnContainerDragStateChanged;
         container.RequestDelete += OnContainerRequestDelete;
+        container.LongPressEditMode += OnContainerLongPressEditMode;
 
         // 保证默认/上次布局不会超出当前屏幕
         var x = Math.Clamp(config.PosX, 0, Math.Max(0, maxX - size.Width));
@@ -370,6 +371,12 @@ public partial class DesktopSurfaceWindow : Window
     {
         if (sender is not WidgetContainer container) return;
         RemoveWidget(container);
+    }
+
+    private void OnContainerLongPressEditMode(object? sender, EventArgs e)
+    {
+        if (_isEditMode) return;
+        EnterEditMode();
     }
 
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)

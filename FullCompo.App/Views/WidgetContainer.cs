@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using FullCompo.Core.Abstractions;
 using FullCompo.Core.Abstractions.Services;
 using FullCompo.Core.Models;
@@ -38,8 +39,13 @@ public class WidgetContainer : Border
     public event EventHandler? SelectionChanged;
     public event EventHandler<bool>? DragStateChanged;
     public event EventHandler? RequestDelete;
+    public event EventHandler? LongPressEditMode;
+
+    private DispatcherTimer? _longPressTimer;
+    private bool _longPressTriggered;
 
     private const double GridSize = 80.0;
+    private static readonly TimeSpan LongPressDuration = TimeSpan.FromSeconds(3);
 
     public WidgetContainer(WidgetInstanceConfig config, IWidget widget, WidgetSize size, IServiceProvider services)
     {
@@ -56,7 +62,19 @@ public class WidgetContainer : Border
         ApplySize();
         LoadWidget();
 
+        _longPressTimer = new DispatcherTimer { Interval = LongPressDuration };
+        _longPressTimer.Tick += OnLongPressTimerTick;
+
         _themeService.ThemeChanged += (_, _) => ApplyThemeColors();
+    }
+
+    private void OnLongPressTimerTick(object? sender, EventArgs e)
+    {
+        _longPressTimer?.Stop();
+        if (_isEditMode || _longPressTriggered) return;
+
+        _longPressTriggered = true;
+        LongPressEditMode?.Invoke(this, EventArgs.Empty);
     }
 
     private void BuildContainer()
@@ -264,7 +282,16 @@ public class WidgetContainer : Border
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!_isEditMode) return;
+        _longPressTimer?.Stop();
+        _longPressTriggered = false;
+
+        if (!_isEditMode)
+        {
+            // Long-press in normal mode enters edit mode
+            _dragStart = e.GetPosition(this);
+            _longPressTimer?.Start();
+            return;
+        }
 
         _isDragging = false;
         _dragStart = e.GetPosition(this);
@@ -277,7 +304,20 @@ public class WidgetContainer : Border
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!_isEditMode || e.Pointer.Captured != this) return;
+        if (!_isEditMode)
+        {
+            // Cancel long-press if finger/mouse moves significantly
+            var current = e.GetPosition(this);
+            var delta = current - _dragStart;
+            if (Math.Abs(delta.X) > 3 || Math.Abs(delta.Y) > 3)
+            {
+                _longPressTimer?.Stop();
+                _longPressTriggered = false;
+            }
+            return;
+        }
+
+        if (e.Pointer.Captured != this) return;
 
         var current = e.GetPosition(this);
         var delta = current - _dragStart;
@@ -313,7 +353,13 @@ public class WidgetContainer : Border
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Captured != this) return;
+        _longPressTimer?.Stop();
+
+        if (e.Pointer.Captured != this)
+        {
+            _longPressTriggered = false;
+            return;
+        }
 
         e.Pointer.Capture(null);
 
