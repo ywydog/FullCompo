@@ -73,6 +73,40 @@ public class CalendarWidget : WidgetBase
         return root;
     }
 
+    public override Control? CreateSettingsView(WidgetSettings settings)
+    {
+        var viewMode = settings.GetValue("viewMode", "auto");
+        var firstDay = settings.GetValue("firstDayOfWeek", (int)DayOfWeek.Sunday);
+
+        var panel = new StackPanel { Spacing = 8 };
+
+        panel.Children.Add(new TextBlock { Text = "视图模式" });
+        var modeBox = new ComboBox();
+        var modes = new[] { "auto", "date", "month" };
+        foreach (var m in modes) modeBox.Items.Add(m);
+        modeBox.SelectedItem = viewMode;
+        modeBox.SelectionChanged += (_, _) =>
+        {
+            if (modeBox.SelectedItem is string selected)
+                settings.SetValue("viewMode", selected);
+        };
+        panel.Children.Add(modeBox);
+
+        panel.Children.Add(new TextBlock { Text = "每周第一天" });
+        var dayBox = new ComboBox();
+        var days = new[] { DayOfWeek.Sunday, DayOfWeek.Monday, DayOfWeek.Saturday };
+        foreach (var d in days) dayBox.Items.Add(d.ToString());
+        dayBox.SelectedItem = ((DayOfWeek)firstDay).ToString();
+        dayBox.SelectionChanged += (_, _) =>
+        {
+            if (dayBox.SelectedItem is string selected && Enum.TryParse<DayOfWeek>(selected, out var day))
+                settings.SetValue("firstDayOfWeek", (int)day);
+        };
+        panel.Children.Add(dayBox);
+
+        return panel;
+    }
+
     private static void BuildDateView(Grid root, IBrush foreground, IBrush secondaryForeground, IBrush accent, WidgetSize size)
     {
         var now = DateTime.Now;
