@@ -118,103 +118,106 @@ public partial class DesktopSurfaceWindow : Window
 
     private void ApplyDockLayout()
     {
-        var screen = Screens.Primary;
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
         var screenBounds = screen?.Bounds ?? new PixelRect(0, 0, 1920, 1080);
+        var scaling = screen?.Scaling ?? 1.0;
         var dock = _configService.AppSettings.DockPosition;
 
-        // Default top-right panel size (ClassIsland-like capsule)
+        // Default top-right panel size (ClassIsland-like capsule). These values are in DIPs.
         const double panelHeight = 140;
         const double panelWidthRatio = 0.38;
         const double sidePanelWidth = 220;
+        const double margin = 8;
+        var marginPhys = (int)(margin * scaling);
 
-        AppLog.Write($"DesktopSurfaceWindow.ApplyDockLayout: dock={dock}, screen={screenBounds.Width}x{screenBounds.Height}");
+        AppLog.Write($"DesktopSurfaceWindow.ApplyDockLayout: dock={dock}, screen={screenBounds.Width}x{screenBounds.Height}, scaling={scaling}");
 
         switch (dock)
         {
             case "free":
                 WindowState = WindowState.FullScreen;
-                Width = screenBounds.Width;
-                Height = screenBounds.Height;
+                Width = screenBounds.Width / scaling;
+                Height = screenBounds.Height / scaling;
                 Position = new PixelPoint(screenBounds.X, screenBounds.Y);
                 break;
 
             case "top":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * 0.8;
+                Width = screenBounds.Width * 0.8 / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + (screenBounds.Width - Width) / 2),
-                    screenBounds.Y + 8);
+                    (int)(screenBounds.X + (screenBounds.Width - Width * scaling) / 2),
+                    screenBounds.Y + marginPhys);
                 break;
 
             case "top-left":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * panelWidthRatio;
+                Width = screenBounds.Width * panelWidthRatio / scaling;
                 Height = panelHeight;
-                Position = new PixelPoint(screenBounds.X + 8, screenBounds.Y + 8);
+                Position = new PixelPoint(screenBounds.X + marginPhys, screenBounds.Y + marginPhys);
                 break;
 
             case "top-right":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * panelWidthRatio;
+                Width = screenBounds.Width * panelWidthRatio / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
-                    screenBounds.Y + 8);
+                    (int)(screenBounds.X + screenBounds.Width - Width * scaling - marginPhys),
+                    screenBounds.Y + marginPhys);
                 break;
 
             case "bottom":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * 0.8;
+                Width = screenBounds.Width * 0.8 / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + (screenBounds.Width - Width) / 2),
-                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                    (int)(screenBounds.X + (screenBounds.Width - Width * scaling) / 2),
+                    (int)(screenBounds.Y + screenBounds.Height - Height * scaling - marginPhys));
                 break;
 
             case "bottom-left":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * panelWidthRatio;
+                Width = screenBounds.Width * panelWidthRatio / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    screenBounds.X + 8,
-                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                    screenBounds.X + marginPhys,
+                    (int)(screenBounds.Y + screenBounds.Height - Height * scaling - marginPhys));
                 break;
 
             case "bottom-right":
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * panelWidthRatio;
+                Width = screenBounds.Width * panelWidthRatio / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
-                    (int)(screenBounds.Y + screenBounds.Height - Height - 8));
+                    (int)(screenBounds.X + screenBounds.Width - Width * scaling - marginPhys),
+                    (int)(screenBounds.Y + screenBounds.Height - Height * scaling - marginPhys));
                 break;
 
             case "left":
                 WindowState = WindowState.Normal;
                 Width = sidePanelWidth;
-                Height = screenBounds.Height * 0.8;
+                Height = screenBounds.Height * 0.8 / scaling;
                 Position = new PixelPoint(
-                    screenBounds.X + 8,
-                    (int)(screenBounds.Y + (screenBounds.Height - Height) / 2));
+                    screenBounds.X + marginPhys,
+                    (int)(screenBounds.Y + (screenBounds.Height - Height * scaling) / 2));
                 break;
 
             case "right":
                 WindowState = WindowState.Normal;
                 Width = sidePanelWidth;
-                Height = screenBounds.Height * 0.8;
+                Height = screenBounds.Height * 0.8 / scaling;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
-                    (int)(screenBounds.Y + (screenBounds.Height - Height) / 2));
+                    (int)(screenBounds.X + screenBounds.Width - Width * scaling - marginPhys),
+                    (int)(screenBounds.Y + (screenBounds.Height - Height * scaling) / 2));
                 break;
 
             default:
                 WindowState = WindowState.Normal;
-                Width = screenBounds.Width * panelWidthRatio;
+                Width = screenBounds.Width * panelWidthRatio / scaling;
                 Height = panelHeight;
                 Position = new PixelPoint(
-                    (int)(screenBounds.X + screenBounds.Width - Width - 8),
-                    screenBounds.Y + 8);
+                    (int)(screenBounds.X + screenBounds.Width - Width * scaling - marginPhys),
+                    screenBounds.Y + marginPhys);
                 break;
         }
 
@@ -302,9 +305,10 @@ public partial class DesktopSurfaceWindow : Window
             canvas.Children.Clear();
             _widgetContainers.Clear();
 
-            var screen = Screens.Primary;
-            var maxX = screen?.Bounds.Width ?? 1920;
-            var maxY = screen?.Bounds.Height ?? 1080;
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            var scaling = screen?.Scaling ?? 1.0;
+            var maxX = (screen?.Bounds.Width ?? 1920) / scaling;
+            var maxY = (screen?.Bounds.Height ?? 1080) / scaling;
 
             foreach (var panel in _configService.Panels)
             {
@@ -405,12 +409,17 @@ public partial class DesktopSurfaceWindow : Window
         _preEditPosition = Position;
         _preEditSize = new Size(Width, Height);
 
-        // Expand to full work area so widgets can be placed anywhere
-        var workArea = Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
-        var offsetX = workArea.X - Position.X;
-        var offsetY = workArea.Y - Position.Y;
+        // Expand to full work area so widgets can be placed anywhere.
+        // Use the screen that currently contains this window for multi-monitor setups.
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        var workArea = screen?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
+        var scaling = screen?.Scaling ?? 1.0;
 
-        // Convert stored relative positions to fullscreen absolute positions
+        // Avalonia Position/Bounds are physical pixels; Width/Height and Canvas positions are DIPs.
+        var offsetX = (Position.X - workArea.X) / scaling;
+        var offsetY = (Position.Y - workArea.Y) / scaling;
+
+        // Convert stored dock-relative positions to fullscreen absolute positions
         foreach (var widget in _configService.Panels.SelectMany(p => p.Widgets))
         {
             widget.PosX += offsetX;
@@ -419,11 +428,12 @@ public partial class DesktopSurfaceWindow : Window
 
         WindowState = WindowState.Normal;
         Position = new PixelPoint(workArea.X, workArea.Y);
-        Width = workArea.Width;
-        Height = workArea.Height;
+        Width = workArea.Width / scaling;
+        Height = workArea.Height / scaling;
 
         LoadWidgets();
         UpdateClickThrough();
+        Activate();
 
         var overlay = this.FindControl<Canvas>("EditOverlay");
         var toolbar = this.FindControl<Border>("EditToolbar");
@@ -464,9 +474,11 @@ public partial class DesktopSurfaceWindow : Window
         SaveLayout();
 
         // Convert fullscreen absolute positions back to dock-relative positions
-        var workArea = Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
-        var offsetX = _preEditPosition.X - workArea.X;
-        var offsetY = _preEditPosition.Y - workArea.Y;
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        var workArea = screen?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
+        var scaling = screen?.Scaling ?? 1.0;
+        var offsetX = (workArea.X - _preEditPosition.X) / scaling;
+        var offsetY = (workArea.Y - _preEditPosition.Y) / scaling;
 
         foreach (var widget in _configService.Panels.SelectMany(p => p.Widgets))
         {
@@ -690,9 +702,10 @@ public partial class DesktopSurfaceWindow : Window
         var canvas = this.FindControl<Canvas>("WidgetsCanvas");
         if (canvas == null) return;
 
-        var screen = Screens.Primary;
-        var maxX = screen?.Bounds.Width ?? 1920;
-        var maxY = screen?.Bounds.Height ?? 1080;
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        var scaling = screen?.Scaling ?? 1.0;
+        var maxX = (screen?.Bounds.Width ?? 1920) / scaling;
+        var maxY = (screen?.Bounds.Height ?? 1080) / scaling;
 
         var config = new WidgetInstanceConfig
         {

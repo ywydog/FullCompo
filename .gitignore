@@ -1,0 +1,38 @@
+# Build outputs
+bin/
+obj/
+out/
+publish/
+releases/
+dist/
+artifacts/
+
+# Visual Studio / JetBrains Rider
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+
+# Test results
+TestResults/
+*.trx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local configuration
+appsettings.Development.json
+*.local.json

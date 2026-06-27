@@ -3,9 +3,18 @@ name: Build
 on:
   push:
     branches: [main, master]
+    tags-ignore:
+      - '*'
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build:
@@ -24,16 +33,27 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install Velopack CLI
-        run: dotnet tool install -g vpk --version 1.0.1
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore FullCompo.sln
 
+      - name: Build
+        run: dotnet build FullCompo.sln --no-restore -c Release -v minimal
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.0.1
+
       - name: Publish
-        run: dotnet publish FullCompo.App/FullCompo.App.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o ./publish/${{ matrix.rid }}
+        run: dotnet publish FullCompo.App/FullCompo.App.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=false -o ./publish/${{ matrix.rid }}
 
       - name: Pack with Velopack
         shell: pwsh
@@ -49,32 +69,32 @@ jobs:
             --channel ${{ matrix.rid }} `
             --icon FullCompo.App/Assets/logo.ico
 
-      - name: Prepare release zip (ClassIsland-style structure)
+      - name: Prepare release zip
         shell: pwsh
         run: |
           $portableZip = Get-ChildItem ./releases/${{ matrix.rid }}/*-Portable.zip | Select-Object -First 1
-          if ($portableZip) {
-            $dest = "./dist/FullCompo-${{ matrix.rid }}"
-            New-Item -ItemType Directory -Force -Path $dest
-            Expand-Archive -Path $portableZip.FullName -DestinationPath $dest -Force
-            Write-Host "Extracted portable zip to $dest"
-            Get-ChildItem $dest -Recurse | ForEach-Object { Write-Host $_.FullName }
-            $zipPath = "./dist/FullCompo-${{ matrix.rid }}.zip"
-            Compress-Archive -Path "$dest\*" -DestinationPath $zipPath -Force
-            Write-Host "Created release zip: $zipPath"
-          } else {
-            Write-Error "Portable zip not found!"
+          if (-not $portableZip) {
+            Write-Error "Portable zip not found in ./releases/${{ matrix.rid }}!"
+            exit 1
           }
+          $dest = "./dist/FullCompo-${{ matrix.rid }}"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          Expand-Archive -Path $portableZip.FullName -DestinationPath $dest -Force
+          Write-Host "Extracted portable zip to $dest"
+          $zipPath = "./dist/FullCompo-${{ matrix.rid }}.zip"
+          Compress-Archive -Path "$dest\*" -DestinationPath $zipPath -Force
+          Write-Host "Created release zip: $zipPath"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: FullCompo-${{ matrix.rid }}
           path: ./dist/FullCompo-${{ matrix.rid }}.zip
+          retention-days: 7
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         with:
           tag_name: nightly
           name: Nightly Build
@@ -87,6 +107,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write job summary
+        if: always()
         shell: pwsh
         run: |
           $assetName = "FullCompo-${{ matrix.rid }}.zip"
@@ -96,6 +117,7 @@ jobs:
   summary:
     needs: build
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Build summary
         shell: pwsh
